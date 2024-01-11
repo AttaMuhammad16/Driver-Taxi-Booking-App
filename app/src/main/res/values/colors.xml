@@ -4,7 +4,7 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="yellow">#FFEB3B</color>
-
+    <color name="rippleColor">#858383</color>
     <color name="tool_color">#0C427C</color>
     <color name="widgetscolor">#0C427C</color>
     <color name="backgroundColor">#1B64B8</color>

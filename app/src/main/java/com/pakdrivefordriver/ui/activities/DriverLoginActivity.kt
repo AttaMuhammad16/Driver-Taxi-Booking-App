@@ -3,6 +3,7 @@ package com.pakdrivefordriver.ui.activities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
@@ -67,23 +68,26 @@ class DriverLoginActivity : AppCompatActivity() {
                 lifecycleScope.launch{
                     var isInternetAvailable=async { InternetChecker().isInternetConnectedWithPackage(this@DriverLoginActivity) }
                     if (isInternetAvailable.await()){
-                        var verification=async { driverViewModel.isVerificationCompleted() }
-                        if (verification.await()){
-                            authViewModel.loginUser(email,password) { result ->
-                                if (result is MyResult.Error) {
-                                    Utils.myToast(this@DriverLoginActivity, result.error)
-                                    Utils.dismissProgressDialog(dialog)
-                                } else if (result is MyResult.Success) {
-                                    Utils.myToast(this@DriverLoginActivity, result.success)
-                                    Utils.dismissProgressDialog(dialog)
-                                    startActivity(Intent(this@DriverLoginActivity, MainActivity::class.java))
-                                    finish()
+                        authViewModel.loginUser(email,password) { result ->
+                            if (result is MyResult.Error) {
+                                Utils.myToast(this@DriverLoginActivity, result.error)
+                                Utils.dismissProgressDialog(dialog)
+                            } else if (result is MyResult.Success) {
+                                lifecycleScope.launch {
+                                    var verification=async { driverViewModel.isVerificationCompleted() }
+                                    if (verification.await()){
+                                        Utils.myToast(this@DriverLoginActivity, result.success)
+                                        Utils.dismissProgressDialog(dialog)
+                                        startActivity(Intent(this@DriverLoginActivity, MainActivity::class.java))
+                                        finish()
+                                    }else{
+                                        Utils.myToast(this@DriverLoginActivity,"Verification in progress.",Toast.LENGTH_LONG)
+                                        Utils.dismissProgressDialog(dialog)
+                                    }
                                 }
                             }
-                        }else{
-                            Utils.myToast(this@DriverLoginActivity,"Verification in progress.",Toast.LENGTH_LONG)
-                            Utils.dismissProgressDialog(dialog)
                         }
+
                     }else{
                         Utils.myToast(this@DriverLoginActivity, "check your internet connection.")
                         Utils.dismissProgressDialog(dialog)

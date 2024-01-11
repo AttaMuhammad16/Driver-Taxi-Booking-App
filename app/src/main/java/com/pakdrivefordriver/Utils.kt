@@ -7,14 +7,17 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.RippleDrawable
 import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -42,7 +45,10 @@ object Utils {
     const val EMAIL_NODE = "email"
     const val CUSTOMER = "customer"
     const val DRIVER = "driver"
-    const val REQUESTSNODE = "request"
+
+    const val REQUESTSFORDRIVERS = "requestForDrivers"
+    const val REQUESTFROMDRIVER = "requestsFromDrivers"
+
 
     const val VERIFICATION_NODE = "verificationProcess"
     const val DRIVER_LAT_NODE = "lat"
@@ -211,14 +217,14 @@ object Utils {
 
 
 
-    fun showAlertDialog(context: Activity,dialogeInterface: DialogeInterface,title:String){
+    fun showAlertDialog(context: Activity,dialogeInterface: DialogInterface,title:String){
         val builder = AlertDialog.Builder(context)
         builder.setTitle(title)
         builder.setPositiveButton("Yes") { _, _ ->
-            dialogeInterface.requestBool(true)
+            dialogeInterface.clickedBol(true)
         }
         builder.setNegativeButton("No") { _, _ ->
-            dialogeInterface.requestBool(false)
+            dialogeInterface.clickedBol(false)
         }
         val dialog = builder.create()
         dialog.show()
@@ -253,9 +259,20 @@ object Utils {
     }
 
 
+
+
+    fun rippleEffect(context: Context, view: View) {
+        val rippleDrawable = RippleDrawable(
+            ColorStateList.valueOf(context.resources.getColor(R.color.rippleColor)),
+            null,
+            null
+        )
+        view.background = rippleDrawable
+    }
+
 }
 
 
-interface DialogeInterface{
-   fun requestBool(boolean: Boolean)
+interface DialogInterface{
+   fun clickedBol(bol: Boolean)
 }

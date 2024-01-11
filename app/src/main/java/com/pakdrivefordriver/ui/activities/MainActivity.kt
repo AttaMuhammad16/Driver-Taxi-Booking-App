@@ -5,6 +5,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Geocoder
 import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
@@ -14,8 +15,10 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -37,6 +40,7 @@ import com.pakdrive.Utils
 import com.pakdrive.Utils.broadCastAction
 import com.pakdrive.Utils.dismissProgressDialog
 import com.pakdrive.Utils.myToast
+import com.pakdrive.Utils.rippleEffect
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.databinding.ActivityMainBinding
 import com.pakdrivefordriver.services.MyService
@@ -45,6 +49,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 
@@ -93,6 +99,25 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             dismissProgressDialog(dialog)
         }
 
+        binding.menuImage.setOnClickListener {
+            if (binding.drawer.isDrawerOpen(GravityCompat.START)) {
+                binding.drawer.closeDrawer(GravityCompat.START)
+            } else {
+                binding.drawer.openDrawer(GravityCompat.START)
+            }
+        }
+
+        lifecycleScope.launch { // drawer item
+            driverViewModel.getRideRequestsForDrivers().collect{
+                binding.numberOfRequests.text=it.size.toString()
+            }
+        }
+
+        binding.rideRequestLinear.setOnClickListener {// drawer item
+//            rippleEffect(this@MainActivity,it)
+            startActivity(Intent(this@MainActivity,RequestViewActivity::class.java))
+        }
+
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -101,7 +126,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             var internetChecker=async { InternetChecker().isInternetConnectedWithPackage(this@MainActivity) }
             if (internetChecker.await()){
                 onGoogleMap=googleMap
-                onGoogleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this@MainActivity,R.raw.map_style)) // setting map style.
+//                onGoogleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this@MainActivity,R.raw.map_style)) // setting map style.
                 googleMap.apply {
                     uiSettings.isCompassEnabled = false;
                     uiSettings.isRotateGesturesEnabled = false;

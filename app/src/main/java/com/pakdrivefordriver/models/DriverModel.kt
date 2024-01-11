@@ -16,5 +16,8 @@ data class DriverModel(
     var totalRating:Int=0,
     var totalPersonRatings:Int=0,
     var availabe:Boolean=false,
+    var far:String="",
+    var timeTravelToCustomer:String="",
+    var distanceTravelToCustomer:String="",
     var verificationProcess:Boolean=false
 )

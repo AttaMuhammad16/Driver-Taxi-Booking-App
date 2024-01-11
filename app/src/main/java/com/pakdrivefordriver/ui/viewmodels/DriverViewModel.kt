@@ -16,18 +16,22 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.maps.model.TravelMode
 import com.pakdrive.MapUtils
 import com.pakdrive.MyResult
 import com.pakdrive.Utils.LATLANG_UPDATE_DELAY
 import com.pakdrive.models.CustomerModel
+import com.pakdrive.models.RequestModel
 import com.pakdrivefordriver.data.driver.DriverRepo
 import com.pakdrivefordriver.models.DriverModel
+import com.pakdrivefordriver.models.SendRequestModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.util.concurrent.Flow
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -153,6 +157,31 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
         }
     }
 
+    suspend fun getRideRequestsForDrivers():kotlinx.coroutines.flow.Flow<ArrayList<RequestModel>>{
+        return driverRepo.getRideRequestsForDrivers()
+    }
+
+    suspend fun deletingRideRequest(key:String):MyResult{
+        return driverRepo.deletingRideRequests(key)
+    }
+
+    suspend fun sendRideRequestToCustomer(sendRequestModel: SendRequestModel):MyResult{
+        return driverRepo.sendRideRequestToCustomer(sendRequestModel)
+    }
+
+    suspend fun updateDriverDetails(far: String, timeTravelToCustomer: String, distanceTravelToCustomer: String){
+        driverRepo.updateDriverDetails(far, timeTravelToCustomer, distanceTravelToCustomer)
+    }
+    suspend fun calculateEstimatedTimeForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode): String?{
+        return driverRepo.calculateEstimatedTimeForRoute(start, end, apiKey, travelMode)
+    }
+    suspend fun calculateDistanceForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode): Double?{
+        return driverRepo.calculateDistanceForRoute(start, end, apiKey, travelMode)
+    }
+
+    suspend fun readingCurrentDriver():DriverModel{
+        return driverRepo.readingCurrentDriver()
+    }
 
 
 }
