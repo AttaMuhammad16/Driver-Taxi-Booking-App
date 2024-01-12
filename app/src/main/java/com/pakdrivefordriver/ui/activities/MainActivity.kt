@@ -108,13 +108,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         lifecycleScope.launch { // drawer item
-            driverViewModel.getRideRequestsForDrivers().collect{
+            driverViewModel.getRideRequests().collect{
                 binding.numberOfRequests.text=it.size.toString()
             }
         }
 
         binding.rideRequestLinear.setOnClickListener {// drawer item
-//            rippleEffect(this@MainActivity,it)
             startActivity(Intent(this@MainActivity,RequestViewActivity::class.java))
         }
 

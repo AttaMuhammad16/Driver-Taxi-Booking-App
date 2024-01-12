@@ -44,9 +44,9 @@ class RequestViewActivity : AppCompatActivity() {
 
 
         lifecycleScope.launch {
-            var dialog=Utils.showProgressDialog(this@RequestViewActivity,"Loading...")
+           var dialog=Utils.showProgressDialog(this@RequestViewActivity,"Loading...")
            var driverModel=async {  driverViewModel.readingCurrentDriver() }.await()
-            driverViewModel.getRideRequestsForDrivers().collect { requests ->
+            driverViewModel.getRideRequests().collect { requests ->
                 list = requests
                 adapter = RequestsAdapter(list,driverViewModel,this@RequestViewActivity,driverModel)
                 binding.recyclerView.apply {

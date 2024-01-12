@@ -17,9 +17,9 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class MyFirebaseMessagingService:FirebaseMessagingService() {
-    @Inject
-    lateinit var auth: FirebaseAuth
-
+    val auth: FirebaseAuth by lazy{
+        FirebaseAuth.getInstance()
+    }
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         val data = remoteMessage.data

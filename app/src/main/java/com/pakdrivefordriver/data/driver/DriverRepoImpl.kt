@@ -19,9 +19,6 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.getValue
-import com.google.firebase.database.ktx.getValue
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.UploadTask
@@ -32,11 +29,10 @@ import com.pakdrive.MyResult
 import com.pakdrive.Utils
 import com.pakdrive.Utils.DRIVER_LANG_NODE
 import com.pakdrive.Utils.DRIVER_LAT_NODE
-import com.pakdrive.Utils.REQUESTFROMDRIVER
-import com.pakdrive.models.CustomerModel
+import com.pakdrive.Utils.OFFER
 import com.pakdrive.models.RequestModel
 import com.pakdrivefordriver.models.DriverModel
-import com.pakdrivefordriver.models.SendRequestModel
+import com.pakdrivefordriver.models.OfferModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -134,7 +130,7 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
         databaseReference.child(Utils.DRIVER).child(uid).updateChildren(map)
     }
 
-    override suspend fun getRideRequestsForDrivers(): Flow<ArrayList<RequestModel>> = callbackFlow {
+    override suspend fun getRideRequests(): Flow<ArrayList<RequestModel>> = callbackFlow {
         val childEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val requests = ArrayList<RequestModel>()
@@ -148,16 +144,17 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
                 close(error.toException())
             }
         }
-        databaseReference.child(Utils.REQUESTSFORDRIVERS).addValueEventListener(childEventListener)
+        databaseReference.child(Utils.RIDEREQUESTS).child(auth.currentUser!!.uid).addValueEventListener(childEventListener)
         awaitClose {
             databaseReference.removeEventListener(childEventListener)
         }
     }
 
-    override suspend fun deletingRideRequests(key: String): MyResult {
+    override suspend fun deletingRideRequests(customerUid:String): MyResult {
+
         return suspendCoroutine { continuation ->
             try {
-                databaseReference.child(Utils.REQUESTSFORDRIVERS).child(key).removeValue().addOnSuccessListener {
+                databaseReference.child(Utils.RIDEREQUESTS).child(auth.currentUser!!.uid).child(customerUid).removeValue().addOnSuccessListener {
                         continuation.resume(MyResult.Success("Ride request cancelled successfully."))
                     }.addOnFailureListener { exception ->
                         continuation.resume(MyResult.Error(exception.message ?: "Unknown error occurred"))
@@ -168,12 +165,12 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
         }
     }
 
-    override suspend fun sendRideRequestToCustomer(sendRequestModel: SendRequestModel): MyResult {
+    override suspend fun sendOffer(sendRequestModel: OfferModel, customerUid: String): MyResult {
         var currentUser=auth.currentUser
         return suspendCoroutine{continuation ->
             if (currentUser!=null){
                 sendRequestModel.driverUid=currentUser.uid
-                databaseReference.child(REQUESTFROMDRIVER).child(currentUser.uid).setValue(sendRequestModel).addOnSuccessListener {
+                databaseReference.child(OFFER).child(customerUid).child(currentUser.uid).setValue(sendRequestModel).addOnSuccessListener {
                     continuation.resume(MyResult.Success("Request send successfully."))
                 }.addOnFailureListener {
                     continuation.resume(MyResult.Error("Something wrong."))

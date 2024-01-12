@@ -9,10 +9,9 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.model.TravelMode
 import com.pakdrive.MyResult
-import com.pakdrive.models.CustomerModel
 import com.pakdrive.models.RequestModel
 import com.pakdrivefordriver.models.DriverModel
-import com.pakdrivefordriver.models.SendRequestModel
+import com.pakdrivefordriver.models.OfferModel
 import kotlinx.coroutines.flow.Flow
 
 interface DriverRepo {
@@ -30,9 +29,9 @@ interface DriverRepo {
 
     // data base
     suspend fun updateDriverLocationOnDataBase(location: Location?)
-    suspend fun getRideRequestsForDrivers(): Flow<ArrayList<RequestModel>>
-    suspend fun deletingRideRequests(key:String):MyResult
-    suspend fun sendRideRequestToCustomer(sendRequestModel: SendRequestModel):MyResult
+    suspend fun getRideRequests(): Flow<ArrayList<RequestModel>>
+    suspend fun deletingRideRequests(customerUid:String):MyResult
+    suspend fun sendOffer(sendRequestModel: OfferModel, customerUid: String):MyResult
     suspend fun updateDriverDetails(far:String,timeTravelToCustomer:String,distanceTravelToCustomer:String)
 
     suspend fun calculateEstimatedTimeForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode = TravelMode.DRIVING): String?

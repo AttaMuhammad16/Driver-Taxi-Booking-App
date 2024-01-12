@@ -14,15 +14,12 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.RippleDrawable
 import android.net.Uri
-import android.os.Build
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.model.LatLng
@@ -46,8 +43,8 @@ object Utils {
     const val CUSTOMER = "customer"
     const val DRIVER = "driver"
 
-    const val REQUESTSFORDRIVERS = "requestForDrivers"
-    const val REQUESTFROMDRIVER = "requestsFromDrivers"
+    const val RIDEREQUESTS = "rideRequest"
+    const val OFFER = "offers"
 
 
     const val VERIFICATION_NODE = "verificationProcess"

@@ -17,21 +17,17 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.model.TravelMode
-import com.pakdrive.MapUtils
 import com.pakdrive.MyResult
 import com.pakdrive.Utils.LATLANG_UPDATE_DELAY
-import com.pakdrive.models.CustomerModel
 import com.pakdrive.models.RequestModel
 import com.pakdrivefordriver.data.driver.DriverRepo
 import com.pakdrivefordriver.models.DriverModel
-import com.pakdrivefordriver.models.SendRequestModel
+import com.pakdrivefordriver.models.OfferModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.util.concurrent.Flow
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -157,16 +153,16 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
         }
     }
 
-    suspend fun getRideRequestsForDrivers():kotlinx.coroutines.flow.Flow<ArrayList<RequestModel>>{
-        return driverRepo.getRideRequestsForDrivers()
+    suspend fun getRideRequests():kotlinx.coroutines.flow.Flow<ArrayList<RequestModel>>{
+        return driverRepo.getRideRequests()
     }
 
-    suspend fun deletingRideRequest(key:String):MyResult{
-        return driverRepo.deletingRideRequests(key)
+    suspend fun deletingRideRequest(customerUid:String):MyResult{
+        return driverRepo.deletingRideRequests(customerUid)
     }
 
-    suspend fun sendRideRequestToCustomer(sendRequestModel: SendRequestModel):MyResult{
-        return driverRepo.sendRideRequestToCustomer(sendRequestModel)
+    suspend fun sendOffer(sendRequestModel: OfferModel, customerUid: String):MyResult{
+        return driverRepo.sendOffer(sendRequestModel,customerUid)
     }
 
     suspend fun updateDriverDetails(far: String, timeTravelToCustomer: String, distanceTravelToCustomer: String){

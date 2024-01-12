@@ -1,7 +1,7 @@
 package com.pakdrivefordriver.models
 
 
-data class SendRequestModel(
+data class OfferModel(
     var driverUid:String="",
     var far:String="",
 )
