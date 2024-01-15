@@ -33,31 +33,27 @@ class RequestViewActivity : AppCompatActivity() {
         binding=DataBindingUtil.setContentView(this@RequestViewActivity,R.layout.activity_request_view)
         Utils.statusBarColor(this,R.color.tool_color)
 
-
-        // notification data.
-//        val uid=intent.getStringExtra(Utils.CUSTOMERUID)
-//        val title=intent.getStringExtra(Utils.TITLE)
-//        val comment=intent.getStringExtra(Utils.COMMENT)
-//        val time=intent.getStringExtra(Utils.TIME)
-//        val distance=intent.getStringExtra(Utils.DISTANCE)
-//        val priceRange=intent.getStringExtra(Utils.PRICERANGE)
-
-
         lifecycleScope.launch {
            var dialog=Utils.showProgressDialog(this@RequestViewActivity,"Loading...")
-           var driverModel=async {  driverViewModel.readingCurrentDriver() }.await()
+           var driverModel=async { driverViewModel.readingCurrentDriver() }.await()
             driverViewModel.getRideRequests().collect { requests ->
+                if (requests.size==0){
+                    binding.blankTv.visibility=View.VISIBLE
+                }else{
+                    binding.blankTv.visibility=View.GONE
+                }
+
+                list.clear()
                 list = requests
-                adapter = RequestsAdapter(list,driverViewModel,this@RequestViewActivity,driverModel)
+
+                adapter = RequestsAdapter(list,driverViewModel,this@RequestViewActivity,driverModel,this@RequestViewActivity)
                 binding.recyclerView.apply {
                     layoutManager = LinearLayoutManager(this@RequestViewActivity)
                     adapter = this@RequestViewActivity.adapter
                 }
                 adapter.notifyDataSetChanged()
                 Utils.dismissProgressDialog(dialog)
-                if (list.size==0){
-                    binding.blankTv.visibility=View.VISIBLE
-                }
+
             }
         }
 

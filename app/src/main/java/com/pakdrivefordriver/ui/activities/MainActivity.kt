@@ -37,10 +37,12 @@ import com.google.android.libraries.places.api.Places
 import com.pakdrive.InternetChecker
 import com.pakdrive.PermissionHandler
 import com.pakdrive.Utils
-import com.pakdrive.Utils.broadCastAction
 import com.pakdrive.Utils.dismissProgressDialog
 import com.pakdrive.Utils.myToast
 import com.pakdrive.Utils.rippleEffect
+import com.pakdrivefordriver.MyConstants.DRIVER
+import com.pakdrivefordriver.MyConstants.DRIVER_TOKEN_NODE
+import com.pakdrivefordriver.MyConstants.broadCastAction
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.databinding.ActivityMainBinding
 import com.pakdrivefordriver.services.MyService
@@ -86,7 +88,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         lifecycleScope.launch {
             if (InternetChecker().isInternetConnectedWithPackage(this@MainActivity)){
-                Utils.generateFCMToken(Utils.DRIVER, Utils.DRIVER_TOKEN_NODE)
+                Utils.generateFCMToken(DRIVER, DRIVER_TOKEN_NODE)
             }
         }
 
@@ -115,6 +117,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         binding.rideRequestLinear.setOnClickListener {// drawer item
             startActivity(Intent(this@MainActivity,RequestViewActivity::class.java))
+        }
+        binding.bookedRidesLinear.setOnClickListener {
+            startActivity(Intent(this@MainActivity,LiveDriveActivity::class.java))
         }
 
     }
@@ -171,7 +176,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     Utils.requestLocationPermission(this@MainActivity)
                 } else if (Utils.isLocationPermissionGranted(this@MainActivity) &&locationManager.isProviderEnabled(
                     LocationManager.GPS_PROVIDER)&& InternetChecker().isInternetConnectedWithPackage(this@MainActivity)){
-                    Utils.generateFCMToken(Utils.DRIVER, Utils.DRIVER_TOKEN_NODE)
+                    Utils.generateFCMToken(DRIVER, DRIVER_TOKEN_NODE)
                     PermissionHandler.askNotificationPermission(this@MainActivity, requestPermissionLauncher)
                     if (::onGoogleMap.isInitialized&&::fusedLocationClient.isInitialized){
                     }

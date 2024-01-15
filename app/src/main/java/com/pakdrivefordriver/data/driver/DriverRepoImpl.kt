@@ -7,7 +7,12 @@ import android.graphics.Bitmap
 import android.location.Location
 import android.net.Uri
 import android.os.Looper
+import android.util.Log
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import com.directions.route.AbstractRouting
+import com.directions.route.Routing
+import com.directions.route.RoutingListener
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -27,10 +32,18 @@ import com.google.maps.GeoApiContext
 import com.google.maps.model.TravelMode
 import com.pakdrive.MyResult
 import com.pakdrive.Utils
-import com.pakdrive.Utils.DRIVER_LANG_NODE
-import com.pakdrive.Utils.DRIVER_LAT_NODE
-import com.pakdrive.Utils.OFFER
+import com.pakdrive.models.CustomerModel
 import com.pakdrive.models.RequestModel
+import com.pakdrivefordriver.MyConstants.ACCEPTNODE
+import com.pakdrivefordriver.MyConstants.CUSTOMER
+import com.pakdrivefordriver.MyConstants.DRIVER
+import com.pakdrivefordriver.MyConstants.DRIVER_LANG_NODE
+import com.pakdrivefordriver.MyConstants.DRIVER_LAT_NODE
+import com.pakdrivefordriver.MyConstants.OFFER
+import com.pakdrivefordriver.MyConstants.RIDEREQUESTS
+import com.pakdrivefordriver.MyConstants.VERIFICATION_NODE
+import com.pakdrivefordriver.MyConstants.apiKey
+import com.pakdrivefordriver.models.AcceptModel
 import com.pakdrivefordriver.models.DriverModel
 import com.pakdrivefordriver.models.OfferModel
 import kotlinx.coroutines.CompletableDeferred
@@ -44,7 +57,8 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseReference: DatabaseReference,val storageReference: StorageReference):DriverRepo {
-
+    val currentUser=auth.currentUser
+    val geoApiContext = GeoApiContext.Builder().apiKey(apiKey).build()
     override suspend fun uploadImageToFirebaseStorage(uri: String): MyResult {
         return try {
             val imageRef = storageReference.child("images/${System.currentTimeMillis()}.jpg")
@@ -87,7 +101,7 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
         var uid = auth.currentUser?.uid ?: "${System.currentTimeMillis()}"
         driverModel.uid = uid
         return try {
-            databaseReference.child(Utils.DRIVER).child(uid).setValue(driverModel).await()
+            databaseReference.child(DRIVER).child(uid).setValue(driverModel).await()
             MyResult.Success("Successfully Registered")
         } catch (e: Exception) {
             MyResult.Error("Failed: ${e.message}")
@@ -97,7 +111,7 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
     override suspend fun isVerificationCompleted(): Boolean {
         val uid = auth.currentUser?.uid ?: "${System.currentTimeMillis()}"
         val deferred = CompletableDeferred<Boolean?>()
-        databaseReference.child(Utils.DRIVER).child(uid).child(Utils.VERIFICATION_NODE).addListenerForSingleValueEvent(object : ValueEventListener {
+        databaseReference.child(DRIVER).child(uid).child(VERIFICATION_NODE).addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val verificationBol = snapshot.getValue(Boolean::class.java)
                     deferred.complete(verificationBol)
@@ -123,11 +137,14 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
     }
 
     override suspend fun updateDriverLocationOnDataBase(location: Location?) {
-        var uid=auth.currentUser?.uid?:"${System.currentTimeMillis()}"
-        var map= hashMapOf<String,Any>()
-        map[DRIVER_LAT_NODE]=location?.latitude?:0.0
-        map[DRIVER_LANG_NODE]=location?.longitude?:0.0
-        databaseReference.child(Utils.DRIVER).child(uid).updateChildren(map)
+        val currentUser=auth.currentUser
+        if (currentUser!=null){
+            var map= hashMapOf<String,Any>()
+            map[DRIVER_LAT_NODE]=location?.latitude?:0.0
+            map[DRIVER_LANG_NODE]=location?.longitude?:0.0
+            databaseReference.child(DRIVER).child(currentUser.uid).updateChildren(map)
+        }
+
     }
 
     override suspend fun getRideRequests(): Flow<ArrayList<RequestModel>> = callbackFlow {
@@ -144,7 +161,7 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
                 close(error.toException())
             }
         }
-        databaseReference.child(Utils.RIDEREQUESTS).child(auth.currentUser!!.uid).addValueEventListener(childEventListener)
+        databaseReference.child(RIDEREQUESTS).child(auth.currentUser!!.uid).addValueEventListener(childEventListener)
         awaitClose {
             databaseReference.removeEventListener(childEventListener)
         }
@@ -154,7 +171,7 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
 
         return suspendCoroutine { continuation ->
             try {
-                databaseReference.child(Utils.RIDEREQUESTS).child(auth.currentUser!!.uid).child(customerUid).removeValue().addOnSuccessListener {
+                databaseReference.child(RIDEREQUESTS).child(auth.currentUser!!.uid).child(customerUid).removeValue().addOnSuccessListener {
                         continuation.resume(MyResult.Success("Ride request cancelled successfully."))
                     }.addOnFailureListener { exception ->
                         continuation.resume(MyResult.Error(exception.message ?: "Unknown error occurred"))
@@ -181,19 +198,19 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
 
     override suspend fun updateDriverDetails(far: String, timeTravelToCustomer: String, distanceTravelToCustomer: String) {
         var currentUser=auth.currentUser
+        Log.i("TAG", "updateDriverDetails:$timeTravelToCustomer")
+        Log.i("TAG", "updateDriverDetails:$distanceTravelToCustomer")
         if (currentUser!=null){
             var map=HashMap<String,Any>()
             map["far"]=far
             map["timeTravelToCustomer"]=timeTravelToCustomer
             map["distanceTravelToCustomer"]=distanceTravelToCustomer
-            databaseReference.child(Utils.DRIVER).child(currentUser.uid).updateChildren(map)
+            databaseReference.child(DRIVER).child(currentUser.uid).updateChildren(map)
         }
     }
 
 
     override suspend fun calculateEstimatedTimeForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode): String? {
-        val geoApiContext = GeoApiContext.Builder().apiKey(apiKey).build()
-
         return try {
             val directionsResult = DirectionsApi.newRequest(geoApiContext).mode(travelMode).origin(com.google.maps.model.LatLng(start.latitude, start.longitude)).destination(com.google.maps.model.LatLng(end.latitude, end.longitude)).await()
             val route = directionsResult.routes[0]
@@ -208,15 +225,8 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
 
 
     override suspend fun calculateDistanceForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode): Double? {
-        val geoApiContext = GeoApiContext.Builder().apiKey(apiKey).build()
-
         return try {
-            val directionsResult = DirectionsApi.newRequest(geoApiContext)
-                .mode(travelMode)
-                .origin(com.google.maps.model.LatLng(start.latitude, start.longitude))
-                .destination(com.google.maps.model.LatLng(end.latitude, end.longitude))
-                .await()
-
+            val directionsResult = DirectionsApi.newRequest(geoApiContext).mode(travelMode).origin(com.google.maps.model.LatLng(start.latitude, start.longitude)).destination(com.google.maps.model.LatLng(end.latitude, end.longitude)).await()
             val route = directionsResult.routes[0]
             val leg = route.legs[0]
             val distanceInMeters = leg.distance.inMeters
@@ -229,7 +239,7 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
 
     override suspend fun readingCurrentDriver(): DriverModel {
         return suspendCoroutine { continuation ->
-            databaseReference.child(Utils.DRIVER).child(auth.currentUser!!.uid)
+            databaseReference.child(DRIVER).child(auth.currentUser!!.uid)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         val driverModel = snapshot.getValue(DriverModel::class.java)
@@ -249,6 +259,48 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
     }
 
 
+    override suspend fun deleteOffer(customerUid: String): MyResult {
+        return if (currentUser != null) {
+            try {
+                databaseReference.child(OFFER).child(customerUid).child(currentUser.uid).removeValue().await()
+                MyResult.Success("Deleted")
+            } catch (e: Exception) {
+                MyResult.Error(e.message ?: "An error occurred")
+            }
+        } else {
+            MyResult.Error("User not logged in")
+        }
+    }
+
+    override suspend fun readAccept(): AcceptModel? {
+        var snap=databaseReference.child(ACCEPTNODE).child(currentUser!!.uid).get().await()
+        return snap.getValue(AcceptModel::class.java)
+    }
+
+
+    override fun findRoutes(Start: LatLng?, End: LatLng?, context: Activity, routingListener: RoutingListener, travelMode: TravelMode) {
+        if (Start == null || End == null) {
+            Toast.makeText(context, "Unable to get location", Toast.LENGTH_LONG).show()
+        } else {
+            val routing: Routing = Routing.Builder().travelMode(mapTravelModeToAbstractRouting(travelMode)).withListener(routingListener).waypoints(Start, End).key(apiKey).alternativeRoutes(true).build()
+            routing.execute()
+        }
+    }
+
+    private fun mapTravelModeToAbstractRouting(googleMapsTravelMode: TravelMode): AbstractRouting.TravelMode {
+        return when (googleMapsTravelMode) {
+            TravelMode.DRIVING -> AbstractRouting.TravelMode.DRIVING
+            TravelMode.WALKING -> AbstractRouting.TravelMode.WALKING
+            TravelMode.BICYCLING -> AbstractRouting.TravelMode.BIKING
+            TravelMode.TRANSIT -> AbstractRouting.TravelMode.TRANSIT
+            else -> throw IllegalArgumentException("Unsupported TravelMode: $googleMapsTravelMode")
+        }
+    }
+
+    override suspend fun getCustomer(uid: String): CustomerModel? {
+        var snap=databaseReference.child(CUSTOMER).child(uid).get().await()
+        return snap.getValue(CustomerModel::class.java)
+    }
 
 
 }

@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.model.TravelMode
@@ -16,6 +17,7 @@ import com.pakdrive.InternetChecker
 import com.pakdrive.MyResult
 import com.pakdrive.Utils
 import com.pakdrive.models.RequestModel
+import com.pakdrivefordriver.MyConstants.apiKey
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.models.DriverModel
 import com.pakdrivefordriver.models.OfferModel
@@ -25,7 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val driverViewModel: DriverViewModel,var context:Activity,val driverModel:DriverModel) : RecyclerView.Adapter<RequestsAdapter.RequestViewHolder>() {
+class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val driverViewModel: DriverViewModel,var context:Activity,val driverModel:DriverModel,val lifecycleOwner: LifecycleOwner) : RecyclerView.Adapter<RequestsAdapter.RequestViewHolder>() {
     class RequestViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var titleTv: TextView = view.findViewById(R.id.titleTv)
         var commentTv: TextView = view.findViewById(R.id.commentTv)
@@ -56,13 +58,19 @@ class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val drive
                     if (bol){
                         var dialog=Utils.showProgressDialog(context,"Cancelling...")
                         CoroutineScope(Dispatchers.Main).launch{
-                            var result=async { driverViewModel.deletingRideRequest(data.customerUid) }.await()
-                            if (result is MyResult.Success){
-                                Utils.dismissProgressDialog(dialog)
-                            }else{
+                            try {
+                                var deleteRequest=async { driverViewModel.deletingRideRequest(data.customerUid) }.await()
+                                if (deleteRequest is MyResult.Success) {
+                                    val requestDeleteResult = driverViewModel.deleteOffer(data.customerUid)
+                                    Utils.resultChecker(requestDeleteResult, context)
+                                } else {
+                                    Utils.resultChecker(deleteRequest, context)
+                                }
+                            }catch (e: Exception){
+                                Utils.resultChecker(MyResult.Error(e.message ?: "Unknown error"), context)
+                            }finally {
                                 Utils.dismissProgressDialog(dialog)
                             }
-                            Utils.resultChecker(result,context)
                         }
                     }
                 }
@@ -82,12 +90,13 @@ class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val drive
                                 val internet=async { InternetChecker().isInternetConnectedWithPackage(context) }
                                 if (internet.await()){
                                     val model=OfferModel(far = farPrice, driverUid = "null")
-                                    var stringToLatLang=async { Utils.stringToLatLng(data.pickUpLatLang) }.await()
-                                    val time=async(Dispatchers.IO) { driverViewModel.calculateEstimatedTimeForRoute(LatLng(driverModel.lat!!,driverModel.lang!!),stringToLatLang!!, Utils.apiKey, TravelMode.DRIVING)?:"none" }.await()
-                                    val distance=async(Dispatchers.IO) { driverViewModel.calculateDistanceForRoute(LatLng(driverModel.lat!!,driverModel.lang!!),stringToLatLang!!, Utils.apiKey, TravelMode.DRIVING)?:0.0 }.await()
-
+                                    val stringToLatLang=async { Utils.stringToLatLng(data.pickUpLatLang) }.await()
                                     val result=async { driverViewModel.sendOffer(model,data.customerUid) }.await() // offer sending.
-                                    driverViewModel.updateDriverDetails(farPrice,time,distance.toString()) // update some details in driver.
+
+                                    var time= driverViewModel.calculateEstimatedTimeForRoute(LatLng(driverModel.lat!!,driverModel.lang!!),stringToLatLang!!, apiKey, TravelMode.DRIVING)?:"none"
+                                    var distance=driverViewModel.calculateDistanceForRoute(LatLng(driverModel.lat!!,driverModel.lang!!),stringToLatLang!!, apiKey, TravelMode.DRIVING)?:"0.0"
+
+                                    driverViewModel.updateDriverDetails(farPrice,time,distance) // update some details in driver.
 
                                     if (result is MyResult.Success){
                                         Utils.dismissProgressDialog(dialog)
@@ -105,7 +114,6 @@ class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val drive
                 },"Do you want to send this request?")
             }
         }
-
     }
     override fun getItemCount() = requestList.size
 }

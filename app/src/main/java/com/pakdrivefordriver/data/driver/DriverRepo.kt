@@ -3,13 +3,17 @@ package com.pakdrivefordriver.data.driver
 import android.app.Activity
 import android.graphics.Bitmap
 import android.location.Location
+import com.directions.route.RoutingListener
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.model.TravelMode
 import com.pakdrive.MyResult
+import com.pakdrive.models.CustomerModel
 import com.pakdrive.models.RequestModel
+import com.pakdrivefordriver.models.AcceptModel
 import com.pakdrivefordriver.models.DriverModel
 import com.pakdrivefordriver.models.OfferModel
 import kotlinx.coroutines.flow.Flow
@@ -38,4 +42,10 @@ interface DriverRepo {
     suspend fun calculateDistanceForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode): Double?
     suspend fun readingCurrentDriver(): DriverModel
 
+    suspend fun deleteOffer(customerUid: String):MyResult
+
+    fun findRoutes(Start: LatLng?, End: LatLng?, context: Activity, routingListener: RoutingListener, travelMode: TravelMode)
+
+    suspend fun readAccept():AcceptModel?
+    suspend fun getCustomer(uid:String):CustomerModel?
 }

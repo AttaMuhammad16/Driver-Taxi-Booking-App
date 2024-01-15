@@ -26,6 +26,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.pakdrivefordriver.MyConstants.LOCATION_PERMISSION_REQUEST_CODE
 import com.pakdrivefordriver.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,48 +35,6 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
 object Utils {
-    const val apiKey="AIzaSyAfpjPj2_qCM6dgKxVCGOgh1q_VcukaMBs"
-    const val broadCastAction="com.pakdrivefordriver.ACTION_STOP_SERVICE"
-
-    const val LOCATION_PERMISSION_REQUEST_CODE = 1
-    const val USER_IMAGE_REQUEST_CODE=4
-    const val EMAIL_NODE = "email"
-    const val CUSTOMER = "customer"
-    const val DRIVER = "driver"
-
-    const val RIDEREQUESTS = "rideRequest"
-    const val OFFER = "offers"
-
-
-    const val VERIFICATION_NODE = "verificationProcess"
-    const val DRIVER_LAT_NODE = "lat"
-    const val DRIVER_LANG_NODE = "lang"
-    const val LATLANG_UPDATE_DELAY=5000
-    const val CUSTOMER_TOKEN_NODE="customerFCMToken"
-    const val DRIVER_TOKEN_NODE="driverFCMToken"
-
-    const val TITLE="title"
-    const val BODY="body"
-    const val CUSTOMERFCMTOKEN="customerFcmToken"
-    const val STARTLATLANG="startLatLang"
-    const val ENDLATLANG="endLatLang"
-    const val CUSTOMERPHONENUMBER="customerPhoneNumber"
-    const val CUSTOMERNAME="customerName"
-    const val CLICKACTION="click_action"
-    const val PRICERANGE="priceRange"
-    const val COMMENT="comment"
-    const val TIME="time"
-    const val DISTANCE="distance"
-    const val CUSTOMERUID="uid"
-    const val DRIVERUID="driveruid"
-    const val RideRequestFromDriver="RideRequestsFromDriver"
-    const val isRideAccepted="rideAccepted"
-    const val DRIVERLAT="driverLat"
-    const val DRIVERLANG="driverLang"
-
-    const val CUSTOMERSTARTLATLANG="startLatLang"
-    const val CUSTOMERENDLATLANG="endLatLang"
-    const val approved:String="null"
 
 
     fun isLocationPermissionGranted(context:Activity): Boolean {

@@ -20,6 +20,8 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.pakdrive.Utils
+import com.pakdrivefordriver.MyConstants.LATLANG_UPDATE_DELAY
+import com.pakdrivefordriver.MyConstants.broadCastAction
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.data.driver.DriverRepo
 import com.pakdrivefordriver.services.broadcastreciver.StopServiceReceiver
@@ -43,7 +45,7 @@ class MyService : Service() {
             super.onLocationResult(locationResult)
             GlobalScope.launch {
                 val currentTime = System.currentTimeMillis()
-                if (currentTime - lastUpdateTime >= Utils.LATLANG_UPDATE_DELAY) { // 5 seconds
+                if (currentTime - lastUpdateTime >= LATLANG_UPDATE_DELAY) { // 5 seconds
                     lastUpdateTime = currentTime
                     driverRepo.updateDriverLocationOnDataBase(locationResult.lastLocation)
                 }
@@ -61,7 +63,7 @@ class MyService : Service() {
         super.onCreate()
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         requestLocationUpdates()
-        val filter = IntentFilter(Utils.broadCastAction)
+        val filter = IntentFilter(broadCastAction)
         registerReceiver(stopReceiver, filter)
     }
 

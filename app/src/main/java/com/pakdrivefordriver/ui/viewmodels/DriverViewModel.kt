@@ -4,8 +4,11 @@ import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.directions.route.RoutingListener
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -18,9 +21,11 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.model.TravelMode
 import com.pakdrive.MyResult
-import com.pakdrive.Utils.LATLANG_UPDATE_DELAY
+import com.pakdrive.models.CustomerModel
 import com.pakdrive.models.RequestModel
+import com.pakdrivefordriver.MyConstants.LATLANG_UPDATE_DELAY
 import com.pakdrivefordriver.data.driver.DriverRepo
+import com.pakdrivefordriver.models.AcceptModel
 import com.pakdrivefordriver.models.DriverModel
 import com.pakdrivefordriver.models.OfferModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +33,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -36,6 +42,12 @@ import kotlin.coroutines.suspendCoroutine
 class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):ViewModel() {
     private var lastUpdateTime = 0L
     private var userLocationMarker: Marker? = null
+
+    private var _time:MutableLiveData<String> = MutableLiveData("00:00")
+    private var _distance:MutableLiveData<String> = MutableLiveData("0.0 KM")
+
+    val time:LiveData<String> = _time
+    val distance:LiveData<String> = _distance
 
 
     suspend fun uploadImageToStorage(bitmap: Bitmap): MyResult {
@@ -141,11 +153,11 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
         if (userLocationMarker == null) {
             val markerOptions = MarkerOptions().position(latLng).icon(getScaledCarIcon(mMap.cameraPosition.zoom, context, drawable)).rotation(location.bearing).anchor(0.5f, 0.5f)
             userLocationMarker = mMap.addMarker(markerOptions)
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
         } else {
             userLocationMarker?.position = latLng
             userLocationMarker?.rotation = location.bearing
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f))
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
         }
 
         mMap.setOnCameraIdleListener {
@@ -168,16 +180,47 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
     suspend fun updateDriverDetails(far: String, timeTravelToCustomer: String, distanceTravelToCustomer: String){
         driverRepo.updateDriverDetails(far, timeTravelToCustomer, distanceTravelToCustomer)
     }
-    suspend fun calculateEstimatedTimeForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode): String?{
-        return driverRepo.calculateEstimatedTimeForRoute(start, end, apiKey, travelMode)
+    suspend fun calculateEstimatedTimeForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode):String?{
+        val timeData= withContext(Dispatchers.IO){
+            driverRepo.calculateEstimatedTimeForRoute(start, end, apiKey, travelMode)
+        }
+        _time.value=timeData?:"00:00"
+        return timeData
     }
-    suspend fun calculateDistanceForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode): Double?{
-        return driverRepo.calculateDistanceForRoute(start, end, apiKey, travelMode)
+
+    suspend fun calculateDistanceForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode):String{
+        val distance=withContext(Dispatchers.IO){
+            driverRepo.calculateDistanceForRoute(start, end, apiKey, travelMode)
+        }
+        val formattedDistance = String.format("%.2f KM",distance)
+        _distance.value=formattedDistance
+        return distance.toString()?:"0"
     }
 
     suspend fun readingCurrentDriver():DriverModel{
         return driverRepo.readingCurrentDriver()
     }
+
+    suspend fun deleteOffer(customerUid: String):MyResult{
+        return driverRepo.deleteOffer(customerUid)
+    }
+
+    suspend fun readAccept():AcceptModel?{
+        return driverRepo.readAccept()
+    }
+
+
+    fun findingRoute(Start: LatLng?, End: LatLng?, context: Activity, routingListener: RoutingListener, travelMode:TravelMode =TravelMode.DRIVING){
+        viewModelScope.launch(Dispatchers.IO) {
+            driverRepo.findRoutes(Start,End, context, routingListener, travelMode)
+        }
+    }
+
+    suspend fun getCustomer(customerUid:String):CustomerModel?{
+        return driverRepo.getCustomer(customerUid)
+    }
+
+
 
 
 }
