@@ -118,11 +118,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.rideRequestLinear.setOnClickListener {// drawer item
             startActivity(Intent(this@MainActivity,RequestViewActivity::class.java))
         }
+
         binding.bookedRidesLinear.setOnClickListener {
             startActivity(Intent(this@MainActivity,LiveDriveActivity::class.java))
         }
 
     }
+
 
     override fun onMapReady(googleMap: GoogleMap) {
 

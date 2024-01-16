@@ -8,70 +8,218 @@
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/constraintLayOut"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".ui.activities.LiveDriveActivity">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_margin="@dimen/_10sdp"
-            android:elevation="@dimen/_10sdp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                android:id="@+id/distanceTv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_gravity="center"
-                android:text="0 km"
-                android:gravity="center_horizontal"
-                android:textColor="@color/white"
-                android:textSize="@dimen/_18sdp" />
-
-            <Button
-                android:id="@+id/customerDetails"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_margin="@dimen/_2sdp"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/widgetscolor"
-                android:text="Customer Details"
-                app:layout_constraintEnd_toStartOf="@+id/estimatedTime"
-                app:layout_constraintStart_toEndOf="@+id/distanceTv"
-                app:layout_constraintTop_toTopOf="@+id/mapFragment" />
-
-            <TextView
-                android:id="@+id/estimatedTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:elevation="10dp"
-                android:layout_weight="1"
-                android:text="00:00"
-                android:gravity="center"
-                android:layout_gravity="center"
-                android:textColor="@color/white"
-                android:textSize="@dimen/_18sdp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-        </LinearLayout>
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/mapFragment"
             class="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardView"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_50sdp"
+            android:layout_margin="@dimen/_10sdp"
+            android:elevation="@dimen/_10sdp"
+            app:cardBackgroundColor="@color/backgroundColor"
+            app:cardCornerRadius="@dimen/_10sdp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <TextView
+                        android:id="@+id/distanceTv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/roboto_medium"
+                        android:gravity="center_horizontal"
+                        android:text="0 km"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/_18sdp" />
+
+                    <Button
+                        android:id="@+id/cancelRideBtn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="@dimen/_2sdp"
+                        android:layout_weight="1"
+                        android:backgroundTint="@color/widgetscolor"
+                        android:text="Cancel"
+                        android:textColor="@color/white"
+                        app:layout_constraintEnd_toStartOf="@+id/estimatedTime"
+                        app:layout_constraintStart_toEndOf="@+id/distanceTv"
+                        app:layout_constraintTop_toTopOf="@+id/mapFragment" />
+
+                    <TextView
+                        android:id="@+id/estimatedTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_weight="1"
+                        android:elevation="10dp"
+                        android:fontFamily="@font/roboto_medium"
+                        android:gravity="center"
+                        android:text="00:00"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/_18sdp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintLayout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_115sdp"
+            android:background="@drawable/bottom_sheet_bg"
+            android:elevation="@dimen/_10sdp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:id="@+id/linearLayout3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="@dimen/_10sdp"
+                        android:orientation="horizontal"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
+
+                        <ImageView
+                            android:id="@+id/imageView"
+                            android:layout_width="@dimen/_30sdp"
+                            android:layout_height="@dimen/_30sdp"
+                            android:layout_gravity="center"
+                            android:layout_weight="1"
+                            android:src="@drawable/person_with_out_circle"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:tint="@color/white" />
+
+                        <TextView
+                            android:id="@+id/customerNameTv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/baloo"
+                            android:gravity="center"
+                            android:text="Customer Name"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/_18sdp"
+                            app:layout_constraintBottom_toBottomOf="@+id/imageView"
+                            app:layout_constraintStart_toEndOf="@+id/imageView"
+                            app:layout_constraintTop_toTopOf="@+id/imageView" />
+
+                        <ImageView
+                            android:id="@+id/dialImg"
+                            android:layout_width="@dimen/_30sdp"
+                            android:layout_height="@dimen/_30sdp"
+                            android:layout_gravity="end"
+                            android:layout_weight="1"
+                            android:paddingStart="@dimen/_10sdp"
+                            android:src="@drawable/baseline_call_24"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/_5sdp"
+                        android:orientation="vertical"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
+
+                        <TextView
+                            android:id="@+id/pickUpPointNameTv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="start"
+                            android:fontFamily="@font/roboto_medium"
+                            android:paddingStart="@dimen/_10sdp"
+                            android:text="pick up point"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/_18sdp"
+                            app:layout_constraintBottom_toBottomOf="@+id/imageView"
+                            app:layout_constraintStart_toEndOf="@+id/imageView"
+                            app:layout_constraintTop_toTopOf="@+id/imageView" />
+
+                        <TextView
+                            android:id="@+id/destinationNameTv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="start"
+                            android:fontFamily="@font/roboto_medium"
+                            android:paddingStart="@dimen/_10sdp"
+                            android:text="destination"
+                            android:textColor="@color/white"
+                            android:textSize="@dimen/_18sdp"
+                            app:layout_constraintBottom_toBottomOf="@+id/imageView"
+                            app:layout_constraintStart_toEndOf="@+id/imageView"
+                            app:layout_constraintTop_toTopOf="@+id/imageView" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/blankTv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:elevation="@dimen/_10sdp"
+            android:fontFamily="@font/baloo"
+            android:gravity="center"
+            android:text="You currently have no booked rides."
+            android:textColor="@color/white"
+            android:textSize="@dimen/_19sdp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

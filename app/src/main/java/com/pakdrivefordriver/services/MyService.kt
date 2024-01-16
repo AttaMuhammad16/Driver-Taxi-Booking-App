@@ -91,8 +91,8 @@ class MyService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
-        unregisterReceiver(stopReceiver)
+//        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+//        unregisterReceiver(stopReceiver)
     }
 
     override fun onBind(intent: Intent?): IBinder? {

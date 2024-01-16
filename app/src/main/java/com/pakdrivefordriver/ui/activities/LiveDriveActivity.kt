@@ -3,15 +3,22 @@ package com.pakdrivefordriver.ui.activities
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.TextUtils
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.directions.route.Route
@@ -35,7 +42,9 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.model.TravelMode
 import com.pakdrive.InternetChecker
 import com.pakdrive.MapUtils
+import com.pakdrive.MapUtils.clearMapObjects
 import com.pakdrive.MapUtils.drawRoute
+import com.pakdrive.MapUtils.removeMarker
 import com.pakdrive.PermissionHandler
 import com.pakdrive.Utils
 import com.pakdrive.Utils.dismissProgressDialog
@@ -60,6 +69,7 @@ import java.util.Locale
 
 @AndroidEntryPoint
 class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, RoutingListener {
+
     val driverViewModel: DriverViewModel by viewModels()
     var stamp = System.currentTimeMillis()
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -77,18 +87,20 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
     private lateinit var locationRequest: LocationRequest
     private lateinit var list:ArrayList<LatLng>
 
-    private var start: LatLng? = null
-    private var end: LatLng? = null
+    private var currentLatLang:LatLng?=null
+    private var pickUpLatLang:LatLng?=null
+    private var destinationLatLang:LatLng?=null
 
-    val thresholdDistance = 9f // half meters
+    val thresholdDistance = 9f // in meters
     val distanceToDestination = FloatArray(1)
     lateinit var  locationManager:LocationManager
     lateinit var dialog: Dialog
-    var pickUpLatLang:String?=""
-    var destinationLatLang:String?=""
+    var pickUpString:String?=""
+    var destinationString:String?=""
     var startLocationMarkerVisibility:Boolean=false
     lateinit var sharedPreferences:SharedPreferences
     lateinit var editor:SharedPreferences.Editor
+    var title=""
 
     @SuppressLint("CommitPrefEdits")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -111,18 +123,60 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
         if (!isLocationPermissionGranted(this@LiveDriveActivity)) {
             requestLocationPermission(this@LiveDriveActivity)
         }
+
         lifecycleScope.launch {
             val acceptModel=driverViewModel.readAccept()
             if (acceptModel!=null){
                 val customerModel=driverViewModel.getCustomer(acceptModel.customerUid)
-                pickUpLatLang=customerModel?.startLatLang
-                destinationLatLang=customerModel?.endLatLang
+                pickUpString=customerModel?.startLatLang
+                destinationString=customerModel?.endLatLang
 
-                end=Utils.stringToLatLng(pickUpLatLang)
+                destinationLatLang=Utils.stringToLatLng(destinationString)
+                pickUpLatLang=Utils.stringToLatLng(pickUpString)
 
-                if (end!=null){
+                if (destinationLatLang!=null){
                     val myFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
                     myFragment.getMapAsync(this@LiveDriveActivity)
+
+                    if (customerModel?.userName?.length==10){
+                        binding.customerNameTv.text=customerModel.userName
+                        binding.customerNameTv.ellipsize = TextUtils.TruncateAt.MARQUEE
+                        binding.customerNameTv.marqueeRepeatLimit = -1
+                        binding.customerNameTv.isSingleLine = true
+                        binding.customerNameTv.isSelected = true
+                    }else{
+                        binding.customerNameTv.text=customerModel?.userName?:"Unknown"
+                    }
+
+                    if (customerModel?.pickUpPointName?.length==10){
+                        binding.pickUpPointNameTv.text="Pickup: ${customerModel?.pickUpPointName?:" Unknown "}"
+                        binding.pickUpPointNameTv.ellipsize = TextUtils.TruncateAt.MARQUEE
+                        binding.pickUpPointNameTv.marqueeRepeatLimit = -1
+                        binding.pickUpPointNameTv.isSingleLine = true
+                        binding.pickUpPointNameTv.isSelected = true
+                    }else{
+                        binding.pickUpPointNameTv.text="Pickup: ${customerModel?.pickUpPointName?:" Unknown "}"
+                    }
+
+                    if (customerModel?.destinationName?.length==10){
+                        binding.destinationNameTv.text="Destination: ${customerModel?.destinationName?:" Unknown "}"
+                        binding.destinationNameTv.ellipsize = TextUtils.TruncateAt.MARQUEE
+                        binding.destinationNameTv.marqueeRepeatLimit = -1
+                        binding.destinationNameTv.isSingleLine = true
+                        binding.destinationNameTv.isSelected = true
+                    }else{
+                        binding.destinationNameTv.text="Destination: ${customerModel?.destinationName?:" Unknown "}"
+                    }
+
+                    binding.dialImg.setOnClickListener {
+                        if (ContextCompat.checkSelfPermission(this@LiveDriveActivity, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+                            ActivityCompat.requestPermissions(this@LiveDriveActivity, arrayOf(android.Manifest.permission.CALL_PHONE), 122)
+                        }else{
+                            val intent = Intent(Intent.ACTION_CALL);
+                            intent.data = Uri.parse("tel:${customerModel?.phoneNumber}")
+                            startActivity(intent)
+                        }
+                    }
 
                 }else{
                     myToast(this@LiveDriveActivity,"pickup point and destination does not found.")
@@ -130,6 +184,10 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                 }
             }else{
                 myToast(this@LiveDriveActivity,"you have not any customer.",Toast.LENGTH_LONG)
+                binding.constraintLayout.visibility= View.GONE
+                binding.cardView.visibility= View.GONE
+                binding.mapFragment.visibility= View.GONE
+                binding.blankTv.visibility= View.VISIBLE
                 dismissProgressDialog(dialog)
             }
 
@@ -161,12 +219,14 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                 onGoogleMap.uiSettings.apply {
                     isMapToolbarEnabled=false
                     isMyLocationButtonEnabled = true
-//                  isRotateGesturesEnabled=false
                     isCompassEnabled=false
                     isZoomControlsEnabled=true
+                    isTiltGesturesEnabled=false
                 }
             }
-
+            onGoogleMap.setOnMapLongClickListener {
+                pickUpLatLang=it
+            }
         }
     }
 
@@ -175,50 +235,54 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
             super.onLocationResult(locationResult)
 
             lifecycleScope.launch {
-                if (System.currentTimeMillis() - stamp > 3000){
-                    val reached=sharedPreferences.getInt("reached",0)
+                val internetChecker= InternetChecker().isInternetConnectedWithPackage(this@LiveDriveActivity)
 
-                    if (::onGoogleMap.isInitialized&&locationResult.lastLocation!=null){
-                        driverViewModel.setUserLocationMarker(locationResult.lastLocation!!,onGoogleMap,this@LiveDriveActivity,R.drawable.map_nav)
-                    }
-                    if (end != null&&reached==0) {
-                        start=LatLng(locationResult.lastLocation!!.latitude,locationResult.lastLocation!!.longitude)
-                        Location.distanceBetween(start!!.latitude, start!!.longitude, end!!.latitude, end!!.longitude, distanceToDestination)
-                        myToast(this@LiveDriveActivity,"${distanceToDestination[0]}")
-                        if (distanceToDestination[0] <=thresholdDistance) {
-                            Toast.makeText(this@LiveDriveActivity, "You have reached at the pickup point.", Toast.LENGTH_LONG).show()
-                            start = LatLng(0.0, 0.0)
-                            end=Utils.stringToLatLng(destinationLatLang)
-                            editor.putInt("reached",1)
-                            editor.apply()
-                            // send notification to the user when drive reached at the pick up point.
+                if (internetChecker){
+                    if (System.currentTimeMillis() - stamp > 3000){
+                        val data=driverViewModel.readAccept() // check ride exits or not.
+
+                        if (data?.driverUid!=null){
+                            val bol=sharedPreferences.getBoolean("bol",false)
+                            if (::onGoogleMap.isInitialized&&locationResult.lastLocation!=null){
+                                driverViewModel.setUserLocationMarker(locationResult.lastLocation!!,onGoogleMap,this@LiveDriveActivity,R.drawable.map_nav)
+                            }
+
+                            if (pickUpLatLang !=null&&!bol&&locationResult.lastLocation!=null) {
+                                currentLatLang=LatLng(locationResult.lastLocation!!.latitude,locationResult.lastLocation!!.longitude)
+                                Location.distanceBetween(currentLatLang!!.latitude, currentLatLang!!.longitude, pickUpLatLang!!.latitude, pickUpLatLang!!.longitude, distanceToDestination)
+                                title="Pickup point"
+                                if (distanceToDestination[0] <=thresholdDistance) {
+                                    Toast.makeText(this@LiveDriveActivity, "You have reached at the pickup point.", Toast.LENGTH_LONG).show()
+                                    editor.putBoolean("bol",true)
+                                }else{
+                                    driverViewModel.findingRoute(currentLatLang?: LatLng(0.0,0.0), pickUpLatLang?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
+                                }
+                                driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
+                                driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:0.0
+
+                            }else if (destinationLatLang!=null && bol){
+                                title="Destination point"
+                                currentLatLang=LatLng(locationResult.lastLocation!!.latitude,locationResult.lastLocation!!.longitude)
+                                Location.distanceBetween(currentLatLang!!.latitude, currentLatLang!!.longitude, destinationLatLang!!.latitude, destinationLatLang!!.longitude, distanceToDestination)
+                                if (distanceToDestination[0] <=thresholdDistance) {
+                                    Toast.makeText(this@LiveDriveActivity, "You have reached at the destination", Toast.LENGTH_LONG).show()
+                                    clearMapObjects()
+                                    removeMarker()
+
+                                }else{
+                                    driverViewModel.findingRoute(currentLatLang?: LatLng(0.0,0.0), destinationLatLang?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
+                                }
+                                driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
+                                driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:0.0
+                            }
+                            stamp = System.currentTimeMillis()
                         }else{
-                            driverViewModel.findingRoute(start?: LatLng(0.0,0.0), end?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
+                            myToast(this@LiveDriveActivity,"Something wrong or drive cancel")
+                            stamp = System.currentTimeMillis()
                         }
-
-                        driverViewModel.calculateEstimatedTimeForRoute(start?: LatLng(0.0,0.0),end?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
-                        driverViewModel.calculateDistanceForRoute(start?: LatLng(0.0,0.0),end?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:0.0
-
-                    }else if (start==null||start==LatLng(0.0, 0.0)&&reached==1){
-                        start=LatLng(locationResult.lastLocation!!.latitude,locationResult.lastLocation!!.longitude)
-                        end=Utils.stringToLatLng(destinationLatLang)
-
-                        Location.distanceBetween(start!!.latitude, start!!.longitude, end!!.latitude, end!!.longitude, distanceToDestination)
-
-                        if (distanceToDestination[0] <=thresholdDistance) {
-                            Toast.makeText(this@LiveDriveActivity, "You have reached the at your destination.", Toast.LENGTH_LONG).show()
-                            start = LatLng(0.0, 0.0)
-                            editor.putInt("reached",2)
-                            editor.apply()
-                        }else{
-                            driverViewModel.findingRoute(start?: LatLng(0.0,0.0), end?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
-                        }
-
-                        driverViewModel.calculateEstimatedTimeForRoute(start?: LatLng(0.0,0.0),end?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
-                        driverViewModel.calculateDistanceForRoute(start?: LatLng(0.0,0.0),end?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:0.0
                     }
-                    stamp = System.currentTimeMillis()
-
+                }else{
+                    myToast(this@LiveDriveActivity,"check your internet connection.")
                 }
             }
         }
@@ -233,20 +297,21 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
     }
 
     override fun onRoutingSuccess(route: ArrayList<Route>?, shortestRouteIndex: Int) {
-        if (start!=null && end!=null){
-            drawRoute(route!!,shortestRouteIndex,this@LiveDriveActivity,onGoogleMap,"Pickup point","destination point",R.color.yellow,startLocationMarkerVisibility)
+        if (destinationLatLang!=null && pickUpLatLang!=null&&title.isNotEmpty()){
+            drawRoute(route!!,shortestRouteIndex,this@LiveDriveActivity,onGoogleMap,title,R.color.yellow,startLocationMarkerVisibility)
             dismissProgressDialog(dialog)
         }else{
             Toast.makeText(this@LiveDriveActivity, "Enter Starting and Ending Point.", Toast.LENGTH_SHORT).show()
         }
     }
 
+
     override fun onRoutingCancelled() {
-        driverViewModel.findingRoute(start,end,this@LiveDriveActivity,this, TravelMode.DRIVING)
+        driverViewModel.findingRoute(pickUpLatLang,destinationLatLang,this@LiveDriveActivity,this, TravelMode.DRIVING)
     }
 
     override fun onRoutingFailure(p0: RouteException?) {
-        driverViewModel.findingRoute(start,end,this@LiveDriveActivity,this, TravelMode.DRIVING)
+        driverViewModel.findingRoute(pickUpLatLang,destinationLatLang,this@LiveDriveActivity,this, TravelMode.DRIVING)
     }
 
     override fun onResume() {

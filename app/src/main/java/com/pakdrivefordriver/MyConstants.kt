@@ -17,7 +17,7 @@ object MyConstants {
     const val VERIFICATION_NODE = "verificationProcess"
     const val DRIVER_LAT_NODE = "lat"
     const val DRIVER_LANG_NODE = "lang"
-    const val LATLANG_UPDATE_DELAY=5000
+    const val LATLANG_UPDATE_DELAY=4000
     const val CUSTOMER_TOKEN_NODE="customerFCMToken"
     const val DRIVER_TOKEN_NODE="driverFCMToken"
 
@@ -31,5 +31,6 @@ object MyConstants {
     const val DRIVERUID="driveruid"
     const val approvedConst="approved"
     const val ACCEPTNODE="accept"
+    const val BEARNING="bearing"
 
 }

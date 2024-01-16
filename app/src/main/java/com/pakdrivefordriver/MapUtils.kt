@@ -18,15 +18,11 @@ import kotlinx.coroutines.launch
 object MapUtils {
 
     var polylines: ArrayList<Polyline> = ArrayList()
-    var markers: ArrayList<Marker> = ArrayList()
+    private var marker: Marker? = null
+    private var isStartMarkerRemoved = false
 
-    fun showPlaces(map:GoogleMap,places:ArrayList<LatLng>){
-        places.forEach {
-            map.addMarker(MarkerOptions().position(it))
-        }
-    }
 
-    fun drawRoute(route: ArrayList<Route>, shortestRouteIndex: Int, context: Activity, onGoogleMap: GoogleMap, st: String, dt: String, color: Int, startMarkerBol:Boolean=true) {
+    fun drawRoute(route: ArrayList<Route>, shortestRouteIndex: Int, context: Activity, onGoogleMap: GoogleMap, title:String, color: Int, startMarkerBol:Boolean=true) {
 
         val newRoutePoints = route[shortestRouteIndex].points
         if (polylines.isNotEmpty() && polylines[0].points == newRoutePoints) {
@@ -54,18 +50,9 @@ object MapUtils {
         }
 
         if (startMarkerBol){
-            val startMarker = MarkerOptions()
-            startMarker.position(polylineStartLatLng!!)
-            startMarker.title(st)
-            val startMarkerObject = onGoogleMap.addMarker(startMarker)
-            markers.add(startMarkerObject!!)
+            updateOrAddMarker(polylineStartLatLng!!,onGoogleMap,title)
         }
-
-        val endMarker = MarkerOptions()
-        endMarker.position(polylineEndLatLng!!)
-        endMarker.title(dt)
-        val endMarkerObject = onGoogleMap.addMarker(endMarker)
-        markers.add(endMarkerObject!!)
+        updateOrAddMarker(polylineEndLatLng!!,onGoogleMap,title)
     }
 
     fun clearMapObjects() {
@@ -73,21 +60,26 @@ object MapUtils {
             polyline.remove()
         }
         polylines.clear()
-
-        for (marker in markers) {
-            marker.remove()
-        }
-        markers.clear()
     }
 
-    fun removePreviousMarkers(markersList: MutableList<Marker>) {
-        if (markersList.isEmpty()){
+    fun removeMarker(){
+        marker?.remove()
+    }
+
+    fun updateOrAddMarker(pickUpLatLang: LatLng, map: GoogleMap, title: String) {
+        if (isStartMarkerRemoved) {
             return
         }
-        for (marker in markersList) {
-            marker.remove()
+        if (marker == null) {
+            val markerOptions = MarkerOptions()
+            markerOptions.position(pickUpLatLang)
+            markerOptions.title(title)
+            marker = map.addMarker(markerOptions)
+        } else {
+            marker?.position = pickUpLatLang
+            marker?.title = title
         }
-        markersList.clear()
+        marker?.showInfoWindow()
     }
 
 }

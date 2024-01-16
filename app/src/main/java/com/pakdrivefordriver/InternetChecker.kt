@@ -44,7 +44,7 @@ class InternetChecker {
     }
 
     suspend fun isInternetConnectedWithPackage(context: Context): Boolean {
-        return isInternetAvailable(context) && hasInternetPackage(context)
+        return withContext(Dispatchers.IO) {isInternetAvailable(context) && hasInternetPackage(context)}
     }
 
 }

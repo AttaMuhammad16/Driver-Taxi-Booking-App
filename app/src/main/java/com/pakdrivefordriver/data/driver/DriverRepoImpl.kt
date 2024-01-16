@@ -2,8 +2,10 @@ package com.pakdrivefordriver.data.driver
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.location.Geocoder
 import android.location.Location
 import android.net.Uri
 import android.os.Looper
@@ -35,6 +37,7 @@ import com.pakdrive.Utils
 import com.pakdrive.models.CustomerModel
 import com.pakdrive.models.RequestModel
 import com.pakdrivefordriver.MyConstants.ACCEPTNODE
+import com.pakdrivefordriver.MyConstants.BEARNING
 import com.pakdrivefordriver.MyConstants.CUSTOMER
 import com.pakdrivefordriver.MyConstants.DRIVER
 import com.pakdrivefordriver.MyConstants.DRIVER_LANG_NODE
@@ -51,6 +54,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.io.IOException
+import java.util.Locale
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -142,6 +147,7 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
             var map= hashMapOf<String,Any>()
             map[DRIVER_LAT_NODE]=location?.latitude?:0.0
             map[DRIVER_LANG_NODE]=location?.longitude?:0.0
+            map[BEARNING]=location?.bearing?:0.0
             databaseReference.child(DRIVER).child(currentUser.uid).updateChildren(map)
         }
 
@@ -273,7 +279,7 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
     }
 
     override suspend fun readAccept(): AcceptModel? {
-        var snap=databaseReference.child(ACCEPTNODE).child(currentUser!!.uid).get().await()
+        val snap=databaseReference.child(ACCEPTNODE).child(currentUser!!.uid).get().await()
         return snap.getValue(AcceptModel::class.java)
     }
 

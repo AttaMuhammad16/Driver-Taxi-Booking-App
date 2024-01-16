@@ -206,7 +206,7 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
     }
 
     suspend fun readAccept():AcceptModel?{
-        return driverRepo.readAccept()
+        return withContext(Dispatchers.IO){driverRepo.readAccept()}
     }
 
 

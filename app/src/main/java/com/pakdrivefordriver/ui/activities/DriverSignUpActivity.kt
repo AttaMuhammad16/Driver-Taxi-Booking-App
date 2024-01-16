@@ -191,8 +191,9 @@ class DriverSignUpActivity : AppCompatActivity() {
                                         }
                                         }
                                     }
+
                                     job.await()
-                                    val model=DriverModel(null,listOfUrls,profileDownloadUrl,userName, email, password, phoneNumber, address,0.0,0.0,"",carDetails,0,0, availabe = false, verificationProcess = false, far = "",timeTravelToCustomer="",distanceTravelToCustomer="")
+                                    val model=DriverModel(null,listOfUrls,profileDownloadUrl,userName, email, password, phoneNumber, address,0.0,0.0,"",carDetails,0,0, availabe = false, verificationProcess = false, far = "",timeTravelToCustomer="",distanceTravelToCustomer="", bearing = 0.0f)
                                     val uploadResult=driverViewModel.uploadUserOnDatabase(model)
                                     if (uploadResult is MyResult.Success){
                                         resultChecker(uploadResult,this@DriverSignUpActivity)
