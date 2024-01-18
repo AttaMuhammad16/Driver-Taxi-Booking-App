@@ -48,6 +48,12 @@ interface DriverRepo {
     fun findRoutes(Start: LatLng?, End: LatLng?, context: Activity, routingListener: RoutingListener, travelMode: TravelMode)
 
     suspend fun readAccept():AcceptModel?
-    suspend fun getCustomer(uid:String):CustomerModel?
+    fun getCustomer(uid:String): Flow<CustomerModel?>
+    suspend fun updateAvailable(available:Boolean)
+
+    suspend fun deleteAcceptModel(driverUid: String):MyResult
+
+    suspend fun updateRideCompletedNode()
+
 
 }

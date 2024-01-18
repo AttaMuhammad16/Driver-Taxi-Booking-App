@@ -53,7 +53,6 @@ class RequestViewActivity : AppCompatActivity() {
                 }
                 adapter.notifyDataSetChanged()
                 Utils.dismissProgressDialog(dialog)
-
             }
         }
 

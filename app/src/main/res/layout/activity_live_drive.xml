@@ -10,6 +10,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/black"
         tools:context=".ui.activities.LiveDriveActivity">
 
         <androidx.fragment.app.FragmentContainerView
@@ -43,6 +44,7 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="horizontal"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
@@ -58,19 +60,6 @@
                         android:text="0 km"
                         android:textColor="@color/white"
                         android:textSize="@dimen/_18sdp" />
-
-                    <Button
-                        android:id="@+id/cancelRideBtn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="@dimen/_2sdp"
-                        android:layout_weight="1"
-                        android:backgroundTint="@color/widgetscolor"
-                        android:text="Cancel"
-                        android:textColor="@color/white"
-                        app:layout_constraintEnd_toStartOf="@+id/estimatedTime"
-                        app:layout_constraintStart_toEndOf="@+id/distanceTv"
-                        app:layout_constraintTop_toTopOf="@+id/mapFragment" />
 
                     <TextView
                         android:id="@+id/estimatedTime"
@@ -89,6 +78,19 @@
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
+
+        <Button
+            android:id="@+id/startBtn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:backgroundTint="@color/widgetscolor"
+            android:text="Start Ride"
+            android:layout_margin="@dimen/_10sdp"
+            android:textColor="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cardView" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/constraintLayout"
@@ -180,7 +182,7 @@
                             android:paddingStart="@dimen/_10sdp"
                             android:text="pick up point"
                             android:textColor="@color/white"
-                            android:textSize="@dimen/_18sdp"
+                            android:textSize="@dimen/_16sdp"
                             app:layout_constraintBottom_toBottomOf="@+id/imageView"
                             app:layout_constraintStart_toEndOf="@+id/imageView"
                             app:layout_constraintTop_toTopOf="@+id/imageView" />
@@ -194,12 +196,46 @@
                             android:paddingStart="@dimen/_10sdp"
                             android:text="destination"
                             android:textColor="@color/white"
-                            android:textSize="@dimen/_18sdp"
+                            android:textSize="@dimen/_16sdp"
                             app:layout_constraintBottom_toBottomOf="@+id/imageView"
                             app:layout_constraintStart_toEndOf="@+id/imageView"
                             app:layout_constraintTop_toTopOf="@+id/imageView" />
-
                     </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/cancelRideBtn"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/_4sdp"
+                            android:layout_weight=".5"
+                            android:backgroundTint="@color/camera_tint"
+                            android:gravity="center"
+                            android:text="Cancel"
+                            android:textColor="@color/black"
+                            app:layout_constraintEnd_toStartOf="@+id/estimatedTime"
+                            app:layout_constraintStart_toEndOf="@+id/distanceTv"
+                            app:layout_constraintTop_toTopOf="@+id/mapFragment" />
+
+                        <Button
+                            android:id="@+id/completedRideBtn"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/_4sdp"
+                            android:layout_weight=".5"
+                            android:backgroundTint="#9C27B0"
+                            android:gravity="center"
+                            android:text="Ride Completed"
+                            android:textColor="@color/white"
+                            app:layout_constraintEnd_toStartOf="@+id/estimatedTime"
+                            app:layout_constraintStart_toEndOf="@+id/distanceTv"
+                            app:layout_constraintTop_toTopOf="@+id/mapFragment" />
+                    </LinearLayout>
+
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
 

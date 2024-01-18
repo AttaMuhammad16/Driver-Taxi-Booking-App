@@ -32,5 +32,9 @@ object MyConstants {
     const val approvedConst="approved"
     const val ACCEPTNODE="accept"
     const val BEARNING="bearing"
+    const val AVAILABLE="availabe"
+
+    const val DRIVERAVAILABLENODE="availabe"
+    const val RIDECOMPLETED="rideCompleted"
 
 }

@@ -32,6 +32,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -40,6 +41,7 @@ import kotlin.coroutines.suspendCoroutine
 
 @HiltViewModel
 class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):ViewModel() {
+
     private var lastUpdateTime = 0L
     private var userLocationMarker: Marker? = null
 
@@ -108,7 +110,6 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
         driverRepo.stopLocationUpdate(fusedLocationClient, locationCallback, context, locationRequest)
     }
 
-
     @OptIn(DelicateCoroutinesApi::class)
     fun updateDriverLocationOnDataBase(location: Location?){
         GlobalScope.launch {
@@ -119,7 +120,6 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
             }
         }
     }
-
 
     fun getScaledCarIcon(zoomLevel: Float, context: Activity, drawable: Int): BitmapDescriptor {
         val scaleFactor = 1.0f + (zoomLevel - 18f) / 10.0f
@@ -165,7 +165,7 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
         }
     }
 
-    suspend fun getRideRequests():kotlinx.coroutines.flow.Flow<ArrayList<RequestModel>>{
+    suspend fun getRideRequests():Flow<ArrayList<RequestModel>>{
         return driverRepo.getRideRequests()
     }
 
@@ -180,6 +180,7 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
     suspend fun updateDriverDetails(far: String, timeTravelToCustomer: String, distanceTravelToCustomer: String){
         driverRepo.updateDriverDetails(far, timeTravelToCustomer, distanceTravelToCustomer)
     }
+
     suspend fun calculateEstimatedTimeForRoute(start: LatLng, end: LatLng, apiKey: String, travelMode: TravelMode):String?{
         val timeData= withContext(Dispatchers.IO){
             driverRepo.calculateEstimatedTimeForRoute(start, end, apiKey, travelMode)
@@ -194,7 +195,7 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
         }
         val formattedDistance = String.format("%.2f KM",distance)
         _distance.value=formattedDistance
-        return distance.toString()?:"0"
+        return distance.toString()
     }
 
     suspend fun readingCurrentDriver():DriverModel{
@@ -216,11 +217,26 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
         }
     }
 
-    suspend fun getCustomer(customerUid:String):CustomerModel?{
+    fun getCustomer(customerUid:String): Flow<CustomerModel?> {
         return driverRepo.getCustomer(customerUid)
     }
 
+    suspend fun updateAvailableNode(isAvailable:Boolean){
+        viewModelScope.launch(Dispatchers.IO) {
+            driverRepo.updateAvailable(isAvailable)
+        }
+    }
 
+    suspend fun deleteAcceptModel(driverUid:String):MyResult{
+       return withContext(Dispatchers.IO){ driverRepo.deleteAcceptModel(driverUid)}
+    }
+
+
+    suspend fun updateRideCompletedNode(){
+        viewModelScope.launch(Dispatchers.IO) {
+            driverRepo.updateRideCompletedNode()
+        }
+    }
 
 
 }

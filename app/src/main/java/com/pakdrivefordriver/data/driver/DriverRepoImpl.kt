@@ -36,13 +36,17 @@ import com.pakdrive.MyResult
 import com.pakdrive.Utils
 import com.pakdrive.models.CustomerModel
 import com.pakdrive.models.RequestModel
+import com.pakdrivefordriver.MyConstants
 import com.pakdrivefordriver.MyConstants.ACCEPTNODE
+import com.pakdrivefordriver.MyConstants.AVAILABLE
 import com.pakdrivefordriver.MyConstants.BEARNING
 import com.pakdrivefordriver.MyConstants.CUSTOMER
 import com.pakdrivefordriver.MyConstants.DRIVER
+import com.pakdrivefordriver.MyConstants.DRIVERAVAILABLENODE
 import com.pakdrivefordriver.MyConstants.DRIVER_LANG_NODE
 import com.pakdrivefordriver.MyConstants.DRIVER_LAT_NODE
 import com.pakdrivefordriver.MyConstants.OFFER
+import com.pakdrivefordriver.MyConstants.RIDECOMPLETED
 import com.pakdrivefordriver.MyConstants.RIDEREQUESTS
 import com.pakdrivefordriver.MyConstants.VERIFICATION_NODE
 import com.pakdrivefordriver.MyConstants.apiKey
@@ -172,6 +176,7 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
             databaseReference.removeEventListener(childEventListener)
         }
     }
+
 
     override suspend fun deletingRideRequests(customerUid:String): MyResult {
 
@@ -303,10 +308,41 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
         }
     }
 
-    override suspend fun getCustomer(uid: String): CustomerModel? {
-        var snap=databaseReference.child(CUSTOMER).child(uid).get().await()
-        return snap.getValue(CustomerModel::class.java)
+    override fun getCustomer(uid: String): Flow<CustomerModel?> = callbackFlow {
+        val customerRef = databaseReference.child(CUSTOMER).child(uid)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val customer = snapshot.getValue(CustomerModel::class.java)
+                trySend(customer).isSuccess
+            }
+            override fun onCancelled(error: DatabaseError) {
+            }
+        }
+        customerRef.addValueEventListener(listener)
+        awaitClose { customerRef.removeEventListener(listener) }
     }
+
+    override suspend fun updateAvailable(available: Boolean) {
+        if (currentUser!=null){
+            var map:HashMap<String,Any> = hashMapOf()
+            map[AVAILABLE] = available
+            databaseReference.child(DRIVER).child(currentUser.uid).updateChildren(map)
+        }
+    }
+
+    override suspend fun deleteAcceptModel(driverUid: String):MyResult {
+        databaseReference.child(ACCEPTNODE).child(driverUid).removeValue().await()
+        return MyResult.Success("Ride cancelled")
+    }
+
+    override suspend fun updateRideCompletedNode() {
+        if (currentUser!=null){
+            val map=HashMap<String,Any>()
+            map[RIDECOMPLETED]=true
+            databaseReference.child(DRIVER).child(currentUser.uid).updateChildren(map).await()
+        }
+    }
+
 
 
 }

@@ -58,8 +58,10 @@ class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val drive
                     if (bol){
                         var dialog=Utils.showProgressDialog(context,"Cancelling...")
                         CoroutineScope(Dispatchers.Main).launch{
+
                             try {
-                                var deleteRequest=async { driverViewModel.deletingRideRequest(data.customerUid) }.await()
+                                val deleteRequest=async { driverViewModel.deletingRideRequest(data.customerUid) }.await()
+
                                 if (deleteRequest is MyResult.Success) {
                                     val requestDeleteResult = driverViewModel.deleteOffer(data.customerUid)
                                     Utils.resultChecker(requestDeleteResult, context)
@@ -71,6 +73,7 @@ class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val drive
                             }finally {
                                 Utils.dismissProgressDialog(dialog)
                             }
+
                         }
                     }
                 }
@@ -89,7 +92,9 @@ class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val drive
                             CoroutineScope(Dispatchers.Main).launch{
                                 val internet=async { InternetChecker().isInternetConnectedWithPackage(context) }
                                 if (internet.await()){
+
                                     val model=OfferModel(far = farPrice, driverUid = "null")
+
                                     val stringToLatLang=async { Utils.stringToLatLng(data.pickUpLatLang) }.await()
                                     val result=async { driverViewModel.sendOffer(model,data.customerUid) }.await() // offer sending.
 

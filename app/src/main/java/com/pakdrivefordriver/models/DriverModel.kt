@@ -20,5 +20,6 @@ data class DriverModel(
     var timeTravelToCustomer:String="",
     var distanceTravelToCustomer:String="",
     var verificationProcess:Boolean=false,
-    var bearing:Float=0.0f
+    var bearing:Float=0.0f,
+    var rideCompleted:Boolean=false
 )
