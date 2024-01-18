@@ -53,7 +53,6 @@ interface DriverRepo {
 
     suspend fun deleteAcceptModel(driverUid: String):MyResult
 
-    suspend fun updateRideCompletedNode()
 
 
 }

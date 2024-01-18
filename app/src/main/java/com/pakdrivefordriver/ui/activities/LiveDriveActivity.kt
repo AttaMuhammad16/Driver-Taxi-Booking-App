@@ -110,10 +110,6 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
     lateinit var sharedPreferences:SharedPreferences
     lateinit var editor:SharedPreferences.Editor
     var title=""
-
-    var time=""
-    var distance:String=""
-
     var customerFCM:String?=""
 
     @SuppressLint("CommitPrefEdits", "SetTextI18n")
@@ -187,13 +183,13 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                 dismissProgressDialog(dialog)
             }
 
-            driverViewModel.time.observe(this@LiveDriveActivity) {
-                binding.estimatedTime.text=it
-            }
-
-            driverViewModel.distance.observe(this@LiveDriveActivity){
-                binding.distanceTv.text=it
-            }
+//            driverViewModel.time.observe(this@LiveDriveActivity) {
+//                binding.estimatedTime.text=it
+//            }
+//
+//            driverViewModel.distance.observe(this@LiveDriveActivity){
+//                binding.distanceTv.text=it
+//            }
 
         }
 
@@ -216,42 +212,6 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
         }
 
 
-        binding.completedRideBtn.setOnClickListener {
-            Utils.showAlertDialog(this@LiveDriveActivity,object:com.pakdrive.DialogInterface{
-                override fun clickedBol(bol: Boolean) {
-                    if (bol){
-                        var dialog=Utils.showProgressDialog(this@LiveDriveActivity,"Loading...")
-                        lifecycleScope.launch {
-
-                            var driverModel=driverViewModel.readingCurrentDriver()
-                            driverViewModel.updateRideCompletedNode()
-                            driverViewModel.updateAvailableNode(false)
-                            async { driverViewModel.deleteAcceptModel(auth.currentUser!!.uid) }.await()
-
-                            sendRideCompletedNotification("Pak Drive ride completed","Your journey is now complete. Welcome to your destination – we hope you enjoyed your ride!",customerFCM!!,"true",auth.currentUser!!.uid)
-                            Toast.makeText(this@LiveDriveActivity, "You have reached at the destination", Toast.LENGTH_LONG).show()
-                            clearMapObjects()
-                            removeMarker()
-                            editor.remove("bol")
-                            editor.apply()
-                            dismissProgressDialog(dialog)
-
-                            if (driverModel.far.isNotEmpty()&&time.isNotEmpty()&&distance.isNotEmpty()){
-                                var intent=Intent(this@LiveDriveActivity,ShowPaymentActivity::class.java)
-                                intent.putExtra("far",driverModel.far)
-                                intent.putExtra("time",time)
-                                intent.putExtra("distance",distance)
-                                startActivity(intent)
-                            }else{
-                                myToast(this@LiveDriveActivity,"Far is null")
-                            }
-
-                        }
-                    }
-                }
-            },"Ride Completed?")
-        }
-
         binding.startBtn.setOnClickListener {
             Utils.showAlertDialog(this@LiveDriveActivity,object:com.pakdrive.DialogInterface{
                 override fun clickedBol(bol: Boolean) {
@@ -265,6 +225,37 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                     }
                 }
             },"Do you want to start the ride?")
+        }
+
+
+        binding.completedRideBtn.setOnClickListener {
+            Utils.showAlertDialog(this@LiveDriveActivity,object:com.pakdrive.DialogInterface{
+                override fun clickedBol(bol: Boolean) {
+                    if (bol){
+                        val dialog=Utils.showProgressDialog(this@LiveDriveActivity,"Loading...")
+                        lifecycleScope.launch {
+
+                            val driverModel=driverViewModel.readingCurrentDriver()
+                            driverViewModel.updateAvailableNode(false)
+                            async { driverViewModel.deleteAcceptModel(auth.currentUser!!.uid) }.await()
+
+                            sendRideCompletedNotification("Pak Drive ride completed","Your journey is now complete. Welcome to your destination – we hope you enjoyed your ride!",customerFCM!!,"true")
+                            Toast.makeText(this@LiveDriveActivity, "You have reached at the destination", Toast.LENGTH_LONG).show()
+                            clearMapObjects()
+                            removeMarker()
+                            editor.remove("bol")
+                            editor.apply()
+                            dismissProgressDialog(dialog)
+
+                            if (driverModel.far.isNotEmpty()){
+
+                            }else{
+                                myToast(this@LiveDriveActivity,"Far is null")
+                            }
+                        }
+                    }
+                }
+            },"Ride Completed?")
         }
 
 
@@ -294,11 +285,6 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                     isTiltGesturesEnabled=false
                 }
             }
-
-//            onGoogleMap.setOnMapLongClickListener {
-//                pickUpLatLang=it
-//            }
-
         }
     }
 
@@ -314,7 +300,7 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                         val data=driverViewModel.readAccept()
                         if (data?.driverUid!=null){
                             val bol=sharedPreferences.getBoolean("bol",false)
-                            Log.i("TAG", "onLocationResult:$bol")
+
                             if (::onGoogleMap.isInitialized&&locationResult.lastLocation!=null){
                                 driverViewModel.setUserLocationMarker(locationResult.lastLocation!!,onGoogleMap,this@LiveDriveActivity,R.drawable.map_nav)
                             }
@@ -332,8 +318,11 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                                     driverViewModel.findingRoute(currentLatLang?: LatLng(0.0,0.0), pickUpLatLang?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
                                 }
 
-                                time=driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
-                                distance=driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)
+                                val time=driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
+                                val distance=driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)
+
+                                binding.estimatedTime.text=time
+                                binding.distanceTv.text=distance
 
                             }else if (destinationLatLang!=null && bol){
                                 title="Destination point"
@@ -342,24 +331,20 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
 
                                 if (distanceToDestination[0] <=thresholdDistance) {
 
-                                    driverViewModel.updateRideCompletedNode()
                                     driverViewModel.updateAvailableNode(false)
                                     async { driverViewModel.deleteAcceptModel(auth.currentUser!!.uid) }.await()
 
-                                    sendRideCompletedNotification("Pak Drive ride completed","Your journey is now completed. Welcome to your destination – we hope you enjoyed your ride!",customerFCM!!,"true",auth.currentUser!!.uid)
+                                    sendRideCompletedNotification("Pak Drive ride completed","Your journey is now completed. Welcome to your destination – we hope you enjoyed your ride!",customerFCM!!,"true")
                                     Toast.makeText(this@LiveDriveActivity, "You have reached at the destination", Toast.LENGTH_LONG).show()
                                     clearMapObjects()
                                     removeMarker()
+
                                     editor.remove("bol")
                                     editor.apply()
 
                                     var driverModel=driverViewModel.readingCurrentDriver()
-                                    if (driverModel.far.isNotEmpty()&&time.isNotEmpty()&&distance.isNotEmpty()){
-                                        var intent=Intent(this@LiveDriveActivity,ShowPaymentActivity::class.java)
-                                        intent.putExtra("far",driverModel.far)
-                                        intent.putExtra("time",time)
-                                        intent.putExtra("distance",distance)
-                                        startActivity(intent)
+                                    if (driverModel.far.isNotEmpty()){
+                                        Log.i("TAG", "onLocationResult:${driverModel.far}")
                                     }else{
                                         myToast(this@LiveDriveActivity,"Far is null")
                                     }
@@ -367,15 +352,18 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                                 }else{
                                     driverViewModel.findingRoute(currentLatLang?: LatLng(0.0,0.0), destinationLatLang?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
                                 }
-                                time=driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
-                                distance=driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)
+                                val time=driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
+                                val distance=driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)
 
+                                binding.estimatedTime.text=time
+                                binding.distanceTv.text=distance
                             }
                             stamp = System.currentTimeMillis()
                         }else{
                             binding.constraintLayout.visibility= View.GONE
                             binding.cardView.visibility= View.GONE
                             binding.mapFragment.visibility= View.GONE
+                            binding.startBtn.visibility= View.GONE
                             binding.blankTv.visibility= View.VISIBLE
                             stamp = System.currentTimeMillis()
                         }

@@ -71,22 +71,19 @@ object SendNotification{
             }
         })
     }
-    suspend fun sendRideCompletedNotification(title: String, des: String, customerToken:String, approved:String,driverUid:String) {
+    suspend fun sendRideCompletedNotification(title: String, des: String, customerToken:String, approved:String) {
         val client = OkHttpClient()
         val mediaType = "application/json".toMediaTypeOrNull()
 
         val jsonNotif = JSONObject().apply {
             put(TITLE, title)
             put(BODY, des)
-            put(DRIVERUID,driverUid)
             put(approvedConst, approved)
-            put(CLICKACTION, "target_2")
         }
 
         val jsonData = JSONObject().apply {
             put(TITLE, title)
             put(BODY, des)
-            put(DRIVERUID,driverUid)
             put(approvedConst, approved)
         }
 

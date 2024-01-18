@@ -335,13 +335,6 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
         return MyResult.Success("Ride cancelled")
     }
 
-    override suspend fun updateRideCompletedNode() {
-        if (currentUser!=null){
-            val map=HashMap<String,Any>()
-            map[RIDECOMPLETED]=true
-            databaseReference.child(DRIVER).child(currentUser.uid).updateChildren(map).await()
-        }
-    }
 
 
 

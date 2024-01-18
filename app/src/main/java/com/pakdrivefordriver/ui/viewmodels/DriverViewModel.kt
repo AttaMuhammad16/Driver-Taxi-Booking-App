@@ -195,7 +195,7 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
         }
         val formattedDistance = String.format("%.2f KM",distance)
         _distance.value=formattedDistance
-        return distance.toString()
+        return formattedDistance
     }
 
     suspend fun readingCurrentDriver():DriverModel{
@@ -231,12 +231,6 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
        return withContext(Dispatchers.IO){ driverRepo.deleteAcceptModel(driverUid)}
     }
 
-
-    suspend fun updateRideCompletedNode(){
-        viewModelScope.launch(Dispatchers.IO) {
-            driverRepo.updateRideCompletedNode()
-        }
-    }
 
 
 }

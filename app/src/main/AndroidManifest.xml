@@ -28,12 +28,15 @@
         android:theme="@style/Theme.PakDriveForDriver"
         tools:targetApi="31" >
         <activity
-            android:name=".ui.activities.ShowPaymentActivity"
-            android:exported="false" />
-        <activity
             android:name=".ui.activities.LiveDriveActivity"
             android:exported="false"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="liveViewDriver" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".ui.activities.RequestViewActivity"
             android:exported="true" >
