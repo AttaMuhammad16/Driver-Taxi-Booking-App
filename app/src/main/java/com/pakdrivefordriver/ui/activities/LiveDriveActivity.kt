@@ -1,6 +1,7 @@
 package com.pakdrivefordriver.ui.activities
 
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
@@ -15,6 +16,8 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -81,6 +84,7 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
     lateinit var auth:FirebaseAuth
     val driverViewModel: DriverViewModel by viewModels()
     var stamp = System.currentTimeMillis()
+
     private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
         if (isGranted) {
             Toast.makeText(this@LiveDriveActivity, "Permission granted", Toast.LENGTH_SHORT).show()
@@ -170,6 +174,7 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                     binding.constraintLayout.visibility= View.GONE
                     binding.cardView.visibility= View.GONE
                     binding.mapFragment.visibility= View.GONE
+                    binding.startBtn.visibility= View.GONE
                     binding.blankTv.visibility= View.VISIBLE
                     dismissProgressDialog(dialog)
                   }
@@ -179,17 +184,10 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                 binding.constraintLayout.visibility= View.GONE
                 binding.cardView.visibility= View.GONE
                 binding.mapFragment.visibility= View.GONE
+                binding.startBtn.visibility= View.GONE
                 binding.blankTv.visibility= View.VISIBLE
                 dismissProgressDialog(dialog)
             }
-
-//            driverViewModel.time.observe(this@LiveDriveActivity) {
-//                binding.estimatedTime.text=it
-//            }
-//
-//            driverViewModel.distance.observe(this@LiveDriveActivity){
-//                binding.distanceTv.text=it
-//            }
 
         }
 
@@ -227,7 +225,6 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
             },"Do you want to start the ride?")
         }
 
-
         binding.completedRideBtn.setOnClickListener {
             Utils.showAlertDialog(this@LiveDriveActivity,object:com.pakdrive.DialogInterface{
                 override fun clickedBol(bol: Boolean) {
@@ -246,8 +243,19 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                             editor.remove("bol")
                             editor.apply()
                             dismissProgressDialog(dialog)
+                            val far=driverModel.far
+                            if (far.isNotEmpty()&&pickUpLatLang!=null&&destinationLatLang!=null){
 
-                            if (driverModel.far.isNotEmpty()){
+                                val distance=driverViewModel.calculateDistanceForRoute(pickUpLatLang!!,destinationLatLang!!,apiKey,TravelMode.DRIVING)
+                                val alert=AlertDialog.Builder(this@LiveDriveActivity).setView(R.layout.ride_completed_dialog).show()
+                                val distanceTv=alert.findViewById<TextView>(R.id.distanceTv)
+                                val paymentTv=alert.findViewById<TextView>(R.id.paymentTv)
+                                val doneBtn=alert.findViewById<Button>(R.id.doneBtn)
+                                distanceTv.text="Distance Traveled: $distance KM"
+                                paymentTv.text="Payment: $far Rs"
+                                doneBtn.setOnClickListener{
+                                    alert.dismiss()
+                                }
 
                             }else{
                                 myToast(this@LiveDriveActivity,"Far is null")
@@ -257,8 +265,6 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                 }
             },"Ride Completed?")
         }
-
-
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -342,9 +348,19 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                                     editor.remove("bol")
                                     editor.apply()
 
-                                    var driverModel=driverViewModel.readingCurrentDriver()
-                                    if (driverModel.far.isNotEmpty()){
-                                        Log.i("TAG", "onLocationResult:${driverModel.far}")
+                                    val driverModel=driverViewModel.readingCurrentDriver()
+                                    val far=driverModel.far
+                                    if (far.isNotEmpty()){
+                                        val distance=driverViewModel.calculateDistanceForRoute(pickUpLatLang!!,destinationLatLang!!,apiKey,TravelMode.DRIVING)
+                                        val alert=AlertDialog.Builder(this@LiveDriveActivity).setView(R.layout.ride_completed_dialog).show()
+                                        val distanceTv=alert.findViewById<TextView>(R.id.distanceTv)
+                                        val paymentTv=alert.findViewById<TextView>(R.id.paymentTv)
+                                        val doneBtn=alert.findViewById<Button>(R.id.doneBtn)
+                                        distanceTv.text=distance
+                                        paymentTv.text=far.toString()
+                                        doneBtn.setOnClickListener{
+                                            alert.dismiss()
+                                        }
                                     }else{
                                         myToast(this@LiveDriveActivity,"Far is null")
                                     }
