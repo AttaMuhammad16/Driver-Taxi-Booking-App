@@ -251,7 +251,7 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                                 val distanceTv=alert.findViewById<TextView>(R.id.distanceTv)
                                 val paymentTv=alert.findViewById<TextView>(R.id.paymentTv)
                                 val doneBtn=alert.findViewById<Button>(R.id.doneBtn)
-                                distanceTv.text="Distance Traveled: $distance KM"
+                                distanceTv.text="Distance Traveled: $distance"
                                 paymentTv.text="Payment: $far Rs"
                                 doneBtn.setOnClickListener{
                                     alert.dismiss()
@@ -353,13 +353,15 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                                     if (far.isNotEmpty()){
                                         val distance=driverViewModel.calculateDistanceForRoute(pickUpLatLang!!,destinationLatLang!!,apiKey,TravelMode.DRIVING)
                                         val alert=AlertDialog.Builder(this@LiveDriveActivity).setView(R.layout.ride_completed_dialog).show()
+                                        alert.setCancelable(false)
                                         val distanceTv=alert.findViewById<TextView>(R.id.distanceTv)
                                         val paymentTv=alert.findViewById<TextView>(R.id.paymentTv)
                                         val doneBtn=alert.findViewById<Button>(R.id.doneBtn)
-                                        distanceTv.text=distance
-                                        paymentTv.text=far.toString()
+                                        distanceTv.text="Distance Traveled: $distance"
+                                        paymentTv.text="Payment: $far Rs"
                                         doneBtn.setOnClickListener{
                                             alert.dismiss()
+                                            finish()
                                         }
                                     }else{
                                         myToast(this@LiveDriveActivity,"Far is null")

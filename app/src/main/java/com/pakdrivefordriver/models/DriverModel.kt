@@ -1,5 +1,6 @@
 package com.pakdrivefordriver.models
 
+
 data class DriverModel(
     var uid:String?="",
     var docUrl: ArrayList<String> = arrayListOf(),
@@ -13,12 +14,13 @@ data class DriverModel(
     var lang:Double?=0.0,
     var driverFCMToken:String="",
     var carDetails:String="",
-    var totalRating:Int=0,
-    var totalPersonRatings:Int=0,
+    var totalRating:Float=0f,
+    var totalPersonRatings:Long=0,
     var availabe:Boolean=false,
     var far:String="",
     var timeTravelToCustomer:String="",
     var distanceTravelToCustomer:String="",
     var verificationProcess:Boolean=false,
     var bearing:Float=0.0f,
+
 )

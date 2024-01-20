@@ -56,18 +56,6 @@
                 app:layout_constraintTop_toBottomOf="@+id/jk">
 
                 <TextView
-                    android:id="@+id/distanceTv"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/_2sdp"
-                    android:fontFamily="@font/roboto_medium"
-                    android:paddingStart="@dimen/_10sdp"
-                    android:text="Distance Traveled"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/_18sdp" />
-
-
-                <TextView
                     android:id="@+id/paymentTv"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -77,6 +65,18 @@
                     android:text="Payment"
                     android:textColor="@color/white"
                     android:textSize="@dimen/_18sdp" />
+
+                <TextView
+                    android:id="@+id/distanceTv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/_2sdp"
+                    android:fontFamily="@font/roboto_medium"
+                    android:paddingStart="@dimen/_10sdp"
+                    android:text="Distance Traveled"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_16sdp" />
+
             </LinearLayout>
 
             <Button
@@ -84,9 +84,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/_10sdp"
-                android:backgroundTint="#F44336"
+                android:backgroundTint="#FFEB3B"
                 android:text="Done"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
