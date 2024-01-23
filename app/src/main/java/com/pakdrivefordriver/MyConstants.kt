@@ -36,5 +36,7 @@ object MyConstants {
 
     const val DRIVERAVAILABLENODE="availabe"
     const val RIDECOMPLETED="rideCompleted"
+    const val CUSTOMERRIDEHISTORY="CustomerRideHistory"
+    const val DRIVERRIDEHISTORY="DriverRideHistory"
 
 }

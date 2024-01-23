@@ -17,6 +17,7 @@ import com.pakdrive.models.RequestModel
 import com.pakdrivefordriver.models.AcceptModel
 import com.pakdrivefordriver.models.DriverModel
 import com.pakdrivefordriver.models.OfferModel
+import com.pakdrivefordriver.models.RideHistoryModel
 import kotlinx.coroutines.flow.Flow
 
 interface DriverRepo {
@@ -52,7 +53,9 @@ interface DriverRepo {
     suspend fun updateAvailable(available:Boolean)
 
     suspend fun deleteAcceptModel(driverUid: String):MyResult
+    suspend fun customerRideHistory(rideHistoryModel: RideHistoryModel,customerUid:String)
 
-
+    suspend fun driverHistory(rideHistoryModel: RideHistoryModel)
+    suspend fun getDriverHistory():ArrayList<RideHistoryModel>?
 
 }

@@ -12,4 +12,6 @@
     <color name="camera_tint">#BABABA</color>
     <color name="hint_color">#717171</color>
 
+    <color name="green">#1BDF21</color>
+    <color name="red">#F61D37</color>
 </resources>

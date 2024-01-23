@@ -28,6 +28,7 @@ import com.pakdrivefordriver.data.driver.DriverRepo
 import com.pakdrivefordriver.models.AcceptModel
 import com.pakdrivefordriver.models.DriverModel
 import com.pakdrivefordriver.models.OfferModel
+import com.pakdrivefordriver.models.RideHistoryModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -151,7 +152,7 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
         }
 
         if (userLocationMarker == null) {
-            val markerOptions = MarkerOptions().position(latLng).icon(getScaledCarIcon(mMap.cameraPosition.zoom, context, drawable)).rotation(location.bearing).anchor(0.5f, 0.5f)
+            val markerOptions = MarkerOptions().position(latLng).icon(getScaledCarIcon(mMap.cameraPosition.zoom, context, drawable)).rotation(location.bearing).zIndex(10f).anchor(0.5f,0.5f).flat(true)
             userLocationMarker = mMap.addMarker(markerOptions)
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 18f))
         } else {
@@ -231,6 +232,22 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
        return withContext(Dispatchers.IO){ driverRepo.deleteAcceptModel(driverUid)}
     }
 
+    suspend fun customerRideHistory(rideHistoryModel: RideHistoryModel, customerUid: String){
+        withContext(Dispatchers.IO){
+            driverRepo.customerRideHistory(rideHistoryModel, customerUid)
+        }
+    }
 
+    suspend fun driverHistory(rideHistoryModel: RideHistoryModel){
+        withContext(Dispatchers.IO){
+            driverRepo.driverHistory(rideHistoryModel)
+        }
+    }
+
+    suspend fun getDriverHistory(): ArrayList<RideHistoryModel>?{
+        return withContext(Dispatchers.IO){
+            driverRepo.getDriverHistory()
+        }
+    }
 
 }

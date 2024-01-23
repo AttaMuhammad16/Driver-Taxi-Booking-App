@@ -123,6 +123,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             startActivity(Intent(this@MainActivity,LiveDriveActivity::class.java))
         }
 
+        binding.rideHistoryLinear.setOnClickListener {
+            startActivity(Intent(this@MainActivity,DriverRideHistoryActivity::class.java))
+        }
+
     }
 
 

@@ -41,8 +41,10 @@ import com.pakdrivefordriver.MyConstants.ACCEPTNODE
 import com.pakdrivefordriver.MyConstants.AVAILABLE
 import com.pakdrivefordriver.MyConstants.BEARNING
 import com.pakdrivefordriver.MyConstants.CUSTOMER
+import com.pakdrivefordriver.MyConstants.CUSTOMERRIDEHISTORY
 import com.pakdrivefordriver.MyConstants.DRIVER
 import com.pakdrivefordriver.MyConstants.DRIVERAVAILABLENODE
+import com.pakdrivefordriver.MyConstants.DRIVERRIDEHISTORY
 import com.pakdrivefordriver.MyConstants.DRIVER_LANG_NODE
 import com.pakdrivefordriver.MyConstants.DRIVER_LAT_NODE
 import com.pakdrivefordriver.MyConstants.OFFER
@@ -53,6 +55,7 @@ import com.pakdrivefordriver.MyConstants.apiKey
 import com.pakdrivefordriver.models.AcceptModel
 import com.pakdrivefordriver.models.DriverModel
 import com.pakdrivefordriver.models.OfferModel
+import com.pakdrivefordriver.models.RideHistoryModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -335,7 +338,41 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
         return MyResult.Success("Ride cancelled")
     }
 
+    override suspend fun customerRideHistory(rideHistoryModel: RideHistoryModel,customerUid: String) {
+        rideHistoryModel.uid=customerUid
+        databaseReference.push().key?.let {
+            rideHistoryModel.dataBaseKey=it
+            databaseReference.child(CUSTOMERRIDEHISTORY).child(customerUid).child(it).setValue(rideHistoryModel).await()
+        }
+    }
 
+    override suspend fun driverHistory(rideHistoryModel: RideHistoryModel) {
+        if (auth.currentUser!=null){
+            rideHistoryModel.uid=auth.uid!!
+            databaseReference.push().key?.let {
+                rideHistoryModel.dataBaseKey=it
+                databaseReference.child(DRIVERRIDEHISTORY).child(auth.uid!!).child(it).setValue(rideHistoryModel).await()
+            }
+        }
+    }
+
+    override suspend fun getDriverHistory(): ArrayList<RideHistoryModel>? {
+        val list=ArrayList<RideHistoryModel>()
+        list.clear()
+        return try {
+            if (auth.currentUser!=null){
+                val snap=databaseReference.child(DRIVERRIDEHISTORY).child(auth.uid!!).get().await()
+                if (snap.exists()){
+                    for (i in snap.children){
+                        list.add(i.getValue(RideHistoryModel::class.java)!!)
+                    }
+                }
+            }
+            list
+        }catch (e:Exception){
+            return null
+        }
+    }
 
 
 }

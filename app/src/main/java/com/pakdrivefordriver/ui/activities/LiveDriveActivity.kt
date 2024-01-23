@@ -53,6 +53,7 @@ import com.pakdrive.MapUtils.removeMarker
 import com.pakdrive.PermissionHandler
 import com.pakdrive.Utils
 import com.pakdrive.Utils.dismissProgressDialog
+import com.pakdrive.Utils.getCurrentFormattedDate
 import com.pakdrive.Utils.isLocationPermissionGranted
 import com.pakdrive.Utils.myToast
 import com.pakdrive.Utils.requestLocationPermission
@@ -61,6 +62,7 @@ import com.pakdrive.Utils.statusBarColor
 import com.pakdrivefordriver.MyConstants.apiKey
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.databinding.ActivityLiveDriveBinding
+import com.pakdrivefordriver.models.RideHistoryModel
 import com.pakdrivefordriver.services.notification.SendNotification.sendCancellationNotification
 import com.pakdrivefordriver.services.notification.SendNotification.sendPickUpNotification
 import com.pakdrivefordriver.services.notification.SendNotification.sendRideCompletedNotification
@@ -115,6 +117,9 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
     lateinit var editor:SharedPreferences.Editor
     var title=""
     var customerFCM:String?=""
+    var customerUid:String?=""
+    var pickUpName:String?=""
+    var destinationName:String?=""
 
     @SuppressLint("CommitPrefEdits", "SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -146,7 +151,11 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
 
                 pickUpString=it?.startLatLang
                 destinationString=it?.endLatLang
-                customerFCM= it?.customerFCMToken // customer fcm
+                customerFCM= it?.customerFCMToken
+                customerUid=it?.uid
+                pickUpName=it?.pickUpPointName
+                destinationName=it?.destinationName
+
 
                 destinationLatLang=Utils.stringToLatLng(destinationString)
                 pickUpLatLang=Utils.stringToLatLng(pickUpString)
@@ -194,17 +203,23 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
         binding.cancelRideBtn.setOnClickListener {
             Utils.showAlertDialog(this@LiveDriveActivity,object:com.pakdrive.DialogInterface{
                 override fun clickedBol(bol: Boolean) {
+
                     if (bol&&customerFCM!=null&&auth.currentUser!=null){
                         var dialog=Utils.showProgressDialog(this@LiveDriveActivity,"Cancelling...")
                         lifecycleScope.launch {
                             driverViewModel.updateAvailableNode(false)
-                            var result=async { driverViewModel.deleteAcceptModel(auth.currentUser!!.uid) }.await()
+                            val result=async { driverViewModel.deleteAcceptModel(auth.currentUser!!.uid) }.await()
+                            val date=getCurrentFormattedDate()
+                            val driverModel=driverViewModel.readingCurrentDriver()
+                            async { driverViewModel.driverHistory(RideHistoryModel(date,pickUpName!!,destinationName!!,false,driverModel.far,"","")) }.await()
+
                             resultChecker(result,this@LiveDriveActivity)
                             sendCancellationNotification("Pak Drive","Ride cancellation Notification.Your ride has been cancelled by the driver.",customerFCM!!,"false")
                             dismissProgressDialog(dialog)
                             finish()
                         }
                     }
+
                 }
             },"Do you want to cancel the ride?")
         }
@@ -233,6 +248,13 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                         lifecycleScope.launch {
 
                             val driverModel=driverViewModel.readingCurrentDriver()
+
+                            if (pickUpName!=null){
+                                val date=getCurrentFormattedDate()
+                                async { driverViewModel.customerRideHistory(RideHistoryModel(date,pickUpName!!,destinationName!!,true,driverModel.far,"",""),customerUid!!) }.await()
+                                async { driverViewModel.driverHistory(RideHistoryModel(date,pickUpName!!,destinationName!!,true,driverModel.far,"","")) }.await()
+                            }
+
                             driverViewModel.updateAvailableNode(false)
                             async { driverViewModel.deleteAcceptModel(auth.currentUser!!.uid) }.await()
 
@@ -255,6 +277,7 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                                 paymentTv.text="Payment: $far Rs"
                                 doneBtn.setOnClickListener{
                                     alert.dismiss()
+                                    finish()
                                 }
 
                             }else{
@@ -302,89 +325,87 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                 val internetChecker= InternetChecker().isInternetConnectedWithPackage(this@LiveDriveActivity)
 
                 if (internetChecker&&pickUpLatLang!=null){
-                    if (System.currentTimeMillis() - stamp > 3000){
-                        val data=driverViewModel.readAccept()
-                        if (data?.driverUid!=null){
-                            val bol=sharedPreferences.getBoolean("bol",false)
+                    val data=driverViewModel.readAccept()
+                    if (data?.driverUid!=null){
+                        val bol=sharedPreferences.getBoolean("bol",false)
 
-                            if (::onGoogleMap.isInitialized&&locationResult.lastLocation!=null){
-                                driverViewModel.setUserLocationMarker(locationResult.lastLocation!!,onGoogleMap,this@LiveDriveActivity,R.drawable.map_nav)
-                            }
-
-                            if (pickUpLatLang !=null&&!bol&&locationResult.lastLocation!=null) {
-                                currentLatLang=LatLng(locationResult.lastLocation!!.latitude,locationResult.lastLocation!!.longitude)
-                                Location.distanceBetween(currentLatLang!!.latitude, currentLatLang!!.longitude, pickUpLatLang!!.latitude, pickUpLatLang!!.longitude, distanceToDestination)
-                                title="Pickup point"
-                                if (distanceToDestination[0] <=thresholdDistance) {
-                                    Toast.makeText(this@LiveDriveActivity, "You have reached at the pickup point.", Toast.LENGTH_LONG).show()
-                                    sendPickUpNotification("Pak Drive ","Driver reached at the pickup point.",customerFCM!!,"reached")
-                                    editor.putBoolean("bol",true)
-                                    editor.apply()
-                                }else{
-                                    driverViewModel.findingRoute(currentLatLang?: LatLng(0.0,0.0), pickUpLatLang?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
-                                }
-
-                                val time=driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
-                                val distance=driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)
-
-                                binding.estimatedTime.text=time
-                                binding.distanceTv.text=distance
-
-                            }else if (destinationLatLang!=null && bol){
-                                title="Destination point"
-                                currentLatLang=LatLng(locationResult.lastLocation!!.latitude,locationResult.lastLocation!!.longitude)
-                                Location.distanceBetween(currentLatLang!!.latitude, currentLatLang!!.longitude, destinationLatLang!!.latitude, destinationLatLang!!.longitude, distanceToDestination)
-
-                                if (distanceToDestination[0] <=thresholdDistance) {
-
-                                    driverViewModel.updateAvailableNode(false)
-                                    async { driverViewModel.deleteAcceptModel(auth.currentUser!!.uid) }.await()
-
-                                    sendRideCompletedNotification("Pak Drive ride completed","Your journey is now completed. Welcome to your destination – we hope you enjoyed your ride!",customerFCM!!,"true")
-                                    Toast.makeText(this@LiveDriveActivity, "You have reached at the destination", Toast.LENGTH_LONG).show()
-                                    clearMapObjects()
-                                    removeMarker()
-
-                                    editor.remove("bol")
-                                    editor.apply()
-
-                                    val driverModel=driverViewModel.readingCurrentDriver()
-                                    val far=driverModel.far
-                                    if (far.isNotEmpty()){
-                                        val distance=driverViewModel.calculateDistanceForRoute(pickUpLatLang!!,destinationLatLang!!,apiKey,TravelMode.DRIVING)
-                                        val alert=AlertDialog.Builder(this@LiveDriveActivity).setView(R.layout.ride_completed_dialog).show()
-                                        alert.setCancelable(false)
-                                        val distanceTv=alert.findViewById<TextView>(R.id.distanceTv)
-                                        val paymentTv=alert.findViewById<TextView>(R.id.paymentTv)
-                                        val doneBtn=alert.findViewById<Button>(R.id.doneBtn)
-                                        distanceTv.text="Distance Traveled: $distance"
-                                        paymentTv.text="Payment: $far Rs"
-                                        doneBtn.setOnClickListener{
-                                            alert.dismiss()
-                                            finish()
-                                        }
-                                    }else{
-                                        myToast(this@LiveDriveActivity,"Far is null")
-                                    }
-
-                                }else{
-                                    driverViewModel.findingRoute(currentLatLang?: LatLng(0.0,0.0), destinationLatLang?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
-                                }
-                                val time=driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
-                                val distance=driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)
-
-                                binding.estimatedTime.text=time
-                                binding.distanceTv.text=distance
-                            }
-                            stamp = System.currentTimeMillis()
-                        }else{
-                            binding.constraintLayout.visibility= View.GONE
-                            binding.cardView.visibility= View.GONE
-                            binding.mapFragment.visibility= View.GONE
-                            binding.startBtn.visibility= View.GONE
-                            binding.blankTv.visibility= View.VISIBLE
-                            stamp = System.currentTimeMillis()
+                        if (::onGoogleMap.isInitialized&&locationResult.lastLocation!=null){
+                            driverViewModel.setUserLocationMarker(locationResult.lastLocation!!,onGoogleMap,this@LiveDriveActivity,R.drawable.map_nav)
                         }
+
+                        if (pickUpLatLang !=null&&!bol&&locationResult.lastLocation!=null) {
+                            currentLatLang=LatLng(locationResult.lastLocation!!.latitude,locationResult.lastLocation!!.longitude)
+                            Location.distanceBetween(currentLatLang!!.latitude, currentLatLang!!.longitude, pickUpLatLang!!.latitude, pickUpLatLang!!.longitude, distanceToDestination)
+                            title="Pickup point"
+                            if (distanceToDestination[0] <=thresholdDistance) {
+                                Toast.makeText(this@LiveDriveActivity, "You have reached at the pickup point.", Toast.LENGTH_LONG).show()
+                                sendPickUpNotification("Pak Drive ","Driver reached at the pickup point.",customerFCM!!,"reached")
+                                editor.putBoolean("bol",true)
+                                editor.apply()
+                            }else{
+                                driverViewModel.findingRoute(currentLatLang?: LatLng(0.0,0.0), pickUpLatLang?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
+                            }
+
+                            val time=driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
+                            val distance=driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),pickUpLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)
+
+                            binding.estimatedTime.text=time
+                            binding.distanceTv.text=distance
+
+                        }else if (destinationLatLang!=null && bol){
+                            title="Destination point"
+                            currentLatLang=LatLng(locationResult.lastLocation!!.latitude,locationResult.lastLocation!!.longitude)
+                            Location.distanceBetween(currentLatLang!!.latitude, currentLatLang!!.longitude, destinationLatLang!!.latitude, destinationLatLang!!.longitude, distanceToDestination)
+
+                            if (distanceToDestination[0] <=thresholdDistance) {
+
+                                driverViewModel.updateAvailableNode(false)
+                                async { driverViewModel.deleteAcceptModel(auth.currentUser!!.uid) }.await()
+
+                                sendRideCompletedNotification("Pak Drive ride completed","Your journey is now completed. Welcome to your destination – we hope you enjoyed your ride!",customerFCM!!,"true")
+                                Toast.makeText(this@LiveDriveActivity, "You have reached at the destination", Toast.LENGTH_LONG).show()
+                                clearMapObjects()
+                                removeMarker()
+
+                                editor.remove("bol")
+                                editor.apply()
+
+                                val driverModel=driverViewModel.readingCurrentDriver()
+                                val far=driverModel.far
+                                if (far.isNotEmpty()){
+                                    val distance=driverViewModel.calculateDistanceForRoute(pickUpLatLang!!,destinationLatLang!!,apiKey,TravelMode.DRIVING)
+                                    val alert=AlertDialog.Builder(this@LiveDriveActivity).setView(R.layout.ride_completed_dialog).show()
+                                    alert.setCancelable(false)
+                                    val distanceTv=alert.findViewById<TextView>(R.id.distanceTv)
+                                    val paymentTv=alert.findViewById<TextView>(R.id.paymentTv)
+                                    val doneBtn=alert.findViewById<Button>(R.id.doneBtn)
+                                    distanceTv.text="Distance Traveled: $distance"
+                                    paymentTv.text="Payment: $far Rs"
+                                    doneBtn.setOnClickListener{
+                                        alert.dismiss()
+                                        finish()
+                                    }
+                                }else{
+                                    myToast(this@LiveDriveActivity,"Far is null")
+                                }
+
+                            }else{
+                                driverViewModel.findingRoute(currentLatLang?: LatLng(0.0,0.0), destinationLatLang?:LatLng(0.0,0.0), this@LiveDriveActivity, this@LiveDriveActivity, TravelMode.DRIVING)
+                            }
+                            val time=driverViewModel.calculateEstimatedTimeForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?: LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)?:"0"
+                            val distance=driverViewModel.calculateDistanceForRoute(currentLatLang?: LatLng(0.0,0.0),destinationLatLang?:LatLng(0.0,0.0),apiKey,TravelMode.DRIVING)
+
+                            binding.estimatedTime.text=time
+                            binding.distanceTv.text=distance
+                        }
+                        stamp = System.currentTimeMillis()
+                    }else{
+                        binding.constraintLayout.visibility= View.GONE
+                        binding.cardView.visibility= View.GONE
+                        binding.mapFragment.visibility= View.GONE
+                        binding.startBtn.visibility= View.GONE
+                        binding.blankTv.visibility= View.VISIBLE
+                        stamp = System.currentTimeMillis()
                     }
                 }
             }
