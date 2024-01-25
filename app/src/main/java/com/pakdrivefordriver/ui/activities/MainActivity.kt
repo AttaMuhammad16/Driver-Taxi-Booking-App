@@ -34,6 +34,7 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
+import com.mindinventory.midrawer.MIDrawerView
 import com.pakdrive.InternetChecker
 import com.pakdrive.PermissionHandler
 import com.pakdrive.Utils
@@ -101,6 +102,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             dismissProgressDialog(dialog)
         }
 
+
+        binding.drawer.setSliderType(MIDrawerView.MI_TYPE_DOOR_OUT)
         binding.menuImage.setOnClickListener {
             if (binding.drawer.isDrawerOpen(GravityCompat.START)) {
                 binding.drawer.closeDrawer(GravityCompat.START)
@@ -108,6 +111,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 binding.drawer.openDrawer(GravityCompat.START)
             }
         }
+
 
         lifecycleScope.launch { // drawer item
             driverViewModel.getRideRequests().collect{
@@ -126,7 +130,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.rideHistoryLinear.setOnClickListener {
             startActivity(Intent(this@MainActivity,DriverRideHistoryActivity::class.java))
         }
-
     }
 
 
