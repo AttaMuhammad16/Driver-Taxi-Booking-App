@@ -58,4 +58,5 @@ interface DriverRepo {
     suspend fun driverHistory(rideHistoryModel: RideHistoryModel)
     suspend fun getDriverHistory():ArrayList<RideHistoryModel>?
 
+
 }

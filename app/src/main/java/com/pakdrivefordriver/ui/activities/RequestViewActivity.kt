@@ -3,13 +3,12 @@ package com.pakdrivefordriver.ui.activities
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.pakdrive.Utils
+import com.pakdrivefordriver.Utils
 import com.pakdrive.models.RequestModel
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.adapters.RequestsAdapter
@@ -17,7 +16,6 @@ import com.pakdrivefordriver.databinding.ActivityRequestViewBinding
 import com.pakdrivefordriver.ui.viewmodels.DriverViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -34,8 +32,8 @@ class RequestViewActivity : AppCompatActivity() {
         Utils.statusBarColor(this,R.color.tool_color)
 
         lifecycleScope.launch {
-           var dialog=Utils.showProgressDialog(this@RequestViewActivity,"Loading...")
-           var driverModel=async { driverViewModel.readingCurrentDriver() }.await()
+           val dialog= Utils.showProgressDialog(this@RequestViewActivity,"Loading...")
+           val driverModel=async { driverViewModel.readingCurrentDriver() }.await()
             driverViewModel.getRideRequests().collect { requests ->
                 if (requests.size==0){
                     binding.blankTv.visibility=View.VISIBLE

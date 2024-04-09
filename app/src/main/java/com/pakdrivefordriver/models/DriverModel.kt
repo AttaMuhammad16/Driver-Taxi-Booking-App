@@ -22,5 +22,5 @@ data class DriverModel(
     var distanceTravelToCustomer:String="",
     var verificationProcess:Boolean=false,
     var bearing:Float=0.0f,
-
+    var lock:Boolean=false
 )

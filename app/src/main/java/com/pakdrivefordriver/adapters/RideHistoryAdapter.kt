@@ -30,8 +30,8 @@ class RideHistoryAdapter(private val rideHistory: ArrayList<RideHistoryModel>, v
     override fun onBindViewHolder(holder: RequestViewHolder, position: Int) {
         val data = rideHistory[position]
         holder.dateTv.text=data.date
-        holder.pickUpPointTv.text=data.pickUpPoint
-        holder.destinationTv.text=data.destinationPoint
+        holder.pickUpPointTv.text="From: ${data.pickUpPoint}"
+        holder.destinationTv.text="To: ${data.destinationPoint}"
         holder.paymentTv.text="${data.payment} PKR"
         if (data.rideStatus){
             holder.statusTv.text="Completed"

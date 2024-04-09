@@ -3,7 +3,6 @@ package com.pakdrivefordriver.ui.activities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
@@ -11,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
 import com.pakdrive.InternetChecker
 import com.pakdrive.MyResult
-import com.pakdrive.Utils
+import com.pakdrivefordriver.Utils
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.databinding.ActivityDriverLoginBinding
 import com.pakdrivefordriver.ui.viewmodels.AuthViewModel

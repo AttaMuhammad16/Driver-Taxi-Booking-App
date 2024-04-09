@@ -16,7 +16,10 @@ import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
 
+
 object SendNotification{
+    var key="key=AAAA7oDFO3c:APA91bGM6-AyNBT_j5fpZCJkTSu92ymRGkobdlbSpR7jB1AFPUSJoIn3ncinJVDi7h2bnvOe4rkBpC8T1aygPhFq2gM_ZnaCh8-PNtv3on00hq_p6BNxLDP13UisY-Oif47Z7TmT3j77"
+
     suspend fun sendCancellationNotification(title: String, des: String, customerToken:String, approved:String) {
 
         val client = OkHttpClient()
@@ -51,7 +54,7 @@ object SendNotification{
         val request = Request.Builder()
             .url("https://fcm.googleapis.com/fcm/send")
             .post(requestBody)
-            .addHeader("Authorization", "key=AAAAx5Jyo0U:APA91bEB1Z9IYIqrN7Tt6avCLOTcto6sLJurSg_JrFCEteF8LS4QKqrB_wMsuh1ZFDiUAlw2rnAS94QHonUtw9j_s5ayfsjFgCmv1xU4I7toSlzB82_mquaMT8M-Fdh20jnw2r0HANO3")
+            .addHeader("Authorization", key)
             .addHeader("Content-type", "application/json")
             .build()
 
@@ -104,7 +107,7 @@ object SendNotification{
         val request = Request.Builder()
             .url("https://fcm.googleapis.com/fcm/send")
             .post(requestBody)
-            .addHeader("Authorization", "key=AAAAx5Jyo0U:APA91bEB1Z9IYIqrN7Tt6avCLOTcto6sLJurSg_JrFCEteF8LS4QKqrB_wMsuh1ZFDiUAlw2rnAS94QHonUtw9j_s5ayfsjFgCmv1xU4I7toSlzB82_mquaMT8M-Fdh20jnw2r0HANO3")
+            .addHeader("Authorization", key)
             .addHeader("Content-type", "application/json")
             .build()
 
@@ -158,7 +161,7 @@ object SendNotification{
         val request = Request.Builder()
             .url("https://fcm.googleapis.com/fcm/send")
             .post(requestBody)
-            .addHeader("Authorization", "key=AAAAx5Jyo0U:APA91bEB1Z9IYIqrN7Tt6avCLOTcto6sLJurSg_JrFCEteF8LS4QKqrB_wMsuh1ZFDiUAlw2rnAS94QHonUtw9j_s5ayfsjFgCmv1xU4I7toSlzB82_mquaMT8M-Fdh20jnw2r0HANO3")
+            .addHeader("Authorization", key)
             .addHeader("Content-type", "application/json")
             .build()
 

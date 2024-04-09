@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -13,7 +12,6 @@ import android.location.LocationManager
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -40,25 +38,23 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.maps.model.TravelMode
 import com.pakdrive.InternetChecker
-import com.pakdrive.MapUtils
 import com.pakdrive.MapUtils.clearMapObjects
 import com.pakdrive.MapUtils.drawRoute
 import com.pakdrive.MapUtils.removeMarker
 import com.pakdrive.PermissionHandler
-import com.pakdrive.Utils
-import com.pakdrive.Utils.dismissProgressDialog
-import com.pakdrive.Utils.getCurrentFormattedDate
-import com.pakdrive.Utils.isLocationPermissionGranted
-import com.pakdrive.Utils.myToast
-import com.pakdrive.Utils.requestLocationPermission
-import com.pakdrive.Utils.resultChecker
-import com.pakdrive.Utils.statusBarColor
+import com.pakdrivefordriver.Utils
+import com.pakdrivefordriver.Utils.dismissProgressDialog
+import com.pakdrivefordriver.Utils.getCurrentFormattedDate
+import com.pakdrivefordriver.Utils.isLocationPermissionGranted
+import com.pakdrivefordriver.Utils.myToast
+import com.pakdrivefordriver.Utils.requestLocationPermission
+import com.pakdrivefordriver.Utils.resultChecker
+import com.pakdrivefordriver.Utils.statusBarColor
 import com.pakdrivefordriver.MyConstants.apiKey
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.databinding.ActivityLiveDriveBinding
@@ -68,16 +64,8 @@ import com.pakdrivefordriver.services.notification.SendNotification.sendPickUpNo
 import com.pakdrivefordriver.services.notification.SendNotification.sendRideCompletedNotification
 import com.pakdrivefordriver.ui.viewmodels.DriverViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -127,7 +115,7 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
         binding = DataBindingUtil.setContentView(this, R.layout.activity_live_drive)
         statusBarColor(this@LiveDriveActivity)
         list= ArrayList()
-        dialog=Utils.showProgressDialog(this@LiveDriveActivity,"Loading")
+        dialog= Utils.showProgressDialog(this@LiveDriveActivity,"Loading")
         sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
         editor = sharedPreferences.edit()
 
@@ -157,8 +145,8 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                 destinationName=it?.destinationName
 
 
-                destinationLatLang=Utils.stringToLatLng(destinationString)
-                pickUpLatLang=Utils.stringToLatLng(pickUpString)
+                destinationLatLang= Utils.stringToLatLng(destinationString)
+                pickUpLatLang= Utils.stringToLatLng(pickUpString)
 
                 if (destinationLatLang!=null){
                     val myFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
@@ -201,11 +189,12 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
         }
 
         binding.cancelRideBtn.setOnClickListener {
-            Utils.showAlertDialog(this@LiveDriveActivity,object:com.pakdrive.DialogInterface{
+            Utils.showAlertDialog(this@LiveDriveActivity,object:
+                com.pakdrivefordriver.DialogInterface {
                 override fun clickedBol(bol: Boolean) {
 
                     if (bol&&customerFCM!=null&&auth.currentUser!=null){
-                        var dialog=Utils.showProgressDialog(this@LiveDriveActivity,"Cancelling...")
+                        var dialog= Utils.showProgressDialog(this@LiveDriveActivity,"Cancelling...")
                         lifecycleScope.launch {
                             driverViewModel.updateAvailableNode(false)
                             val result=async { driverViewModel.deleteAcceptModel(auth.currentUser!!.uid) }.await()
@@ -226,7 +215,8 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
 
 
         binding.startBtn.setOnClickListener {
-            Utils.showAlertDialog(this@LiveDriveActivity,object:com.pakdrive.DialogInterface{
+            Utils.showAlertDialog(this@LiveDriveActivity,object:
+                com.pakdrivefordriver.DialogInterface {
                 override fun clickedBol(bol: Boolean) {
                     if (bol){
                         lifecycleScope.launch {
@@ -241,10 +231,11 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
         }
 
         binding.completedRideBtn.setOnClickListener {
-            Utils.showAlertDialog(this@LiveDriveActivity,object:com.pakdrive.DialogInterface{
+            Utils.showAlertDialog(this@LiveDriveActivity,object:
+                com.pakdrivefordriver.DialogInterface {
                 override fun clickedBol(bol: Boolean) {
                     if (bol){
-                        val dialog=Utils.showProgressDialog(this@LiveDriveActivity,"Loading...")
+                        val dialog= Utils.showProgressDialog(this@LiveDriveActivity,"Loading...")
                         lifecycleScope.launch {
 
                             val driverModel=driverViewModel.readingCurrentDriver()

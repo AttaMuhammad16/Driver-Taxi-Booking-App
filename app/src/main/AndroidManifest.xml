@@ -7,6 +7,7 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -27,6 +28,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PakDriveForDriver"
         tools:targetApi="31">
+        <activity
+            android:name=".ui.activities.EarningActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.activities.DriverRideHistoryActivity"
             android:exported="false" />
@@ -86,7 +90,7 @@
             android:name=".services.MyService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="location" />
+            android:foregroundServiceType="dataSync" />
 
         <receiver
             android:name=".services.broadcastreciver.StopServiceReceiver"

@@ -15,6 +15,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="#1F3043"
             tools:context=".ui.activities.MainActivity">
 
             <ImageView
@@ -26,18 +27,37 @@
                 android:src="@drawable/baseline_menu_24"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tint="@color/widgetscolor" />
+                app:tint="@color/white" />
+
 
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/mapFragment"
                 class="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintBottom_toTopOf="@+id/sheetShow"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
+            <LinearLayout
+                android:id="@+id/sheetShow"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/_25sdp"
+                android:background="@drawable/bottom_sheet_bg"
+                android:elevation="@dimen/_10sdp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <View
+                    android:layout_width="@dimen/_50sdp"
+                    android:layout_height="@dimen/_2sdp"
+                    android:layout_gravity="center"
+                    android:background="#FFFFFF" />
+            </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.google.android.material.navigation.NavigationView
@@ -169,6 +189,54 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Ride History"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/_15sdp"
+                        android:paddingStart="16dp" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/ridesDetailLinear"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/_13sdp"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:orientation="horizontal"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/outline_info_24"
+                        app:tint="@color/white" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Ride Details"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/_15sdp"
+                        android:paddingStart="16dp" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/shareLinear"
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/_13sdp"
+                    android:layout_marginStart="@dimen/_10sdp"
+                    android:layout_marginEnd="@dimen/_10sdp"
+                    android:orientation="horizontal"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/baseline_share_24"
+                        app:tint="@color/white" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Share"
                         android:textColor="@color/white"
                         android:textSize="@dimen/_15sdp"
                         android:paddingStart="16dp" />

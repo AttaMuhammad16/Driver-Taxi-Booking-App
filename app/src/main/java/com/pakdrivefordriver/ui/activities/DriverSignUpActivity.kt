@@ -13,13 +13,13 @@ import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.pakdrive.InternetChecker
 import com.pakdrive.MyResult
-import com.pakdrive.Utils
-import com.pakdrive.Utils.convertUriToBitmap
-import com.pakdrive.Utils.dismissProgressDialog
-import com.pakdrive.Utils.myToast
-import com.pakdrive.Utils.pickImage
-import com.pakdrive.Utils.resultChecker
-import com.pakdrive.Utils.showProgressDialog
+import com.pakdrivefordriver.Utils
+import com.pakdrivefordriver.Utils.convertUriToBitmap
+import com.pakdrivefordriver.Utils.dismissProgressDialog
+import com.pakdrivefordriver.Utils.myToast
+import com.pakdrivefordriver.Utils.pickImage
+import com.pakdrivefordriver.Utils.resultChecker
+import com.pakdrivefordriver.Utils.showProgressDialog
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.databinding.ActivityDriverSignUpBinding
 import com.pakdrivefordriver.models.DriverModel
@@ -193,7 +193,7 @@ class DriverSignUpActivity : AppCompatActivity() {
                                     }
 
                                     job.await()
-                                    val model=DriverModel(null,listOfUrls,profileDownloadUrl,userName, email, password, phoneNumber, address,0.0,0.0,"",carDetails,0f,0, availabe = false, verificationProcess = false, far = "",timeTravelToCustomer="",distanceTravelToCustomer="", bearing = 0.0f)
+                                    val model=DriverModel(null,listOfUrls,profileDownloadUrl,userName, email, password, phoneNumber, address,0.0,0.0,"",carDetails,0f,0, availabe = false, verificationProcess = false, far = "",timeTravelToCustomer="",distanceTravelToCustomer="", bearing = 0.0f, lock = false)
                                     val uploadResult=driverViewModel.uploadUserOnDatabase(model)
                                     if (uploadResult is MyResult.Success){
                                         resultChecker(uploadResult,this@DriverSignUpActivity)

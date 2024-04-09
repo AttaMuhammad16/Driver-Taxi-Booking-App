@@ -7,7 +7,7 @@ import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.pakdrive.Utils
+import com.pakdrivefordriver.Utils
 import com.pakdrivefordriver.R
 import com.pakdrivefordriver.adapters.RideHistoryAdapter
 import com.pakdrivefordriver.databinding.ActivityRideHistoryBinding
@@ -43,5 +43,8 @@ class DriverRideHistoryActivity : AppCompatActivity() {
             dialog.dismiss()
         }
 
+        binding.backArrowImg.setOnClickListener {
+            finish()
+        }
     }
 }

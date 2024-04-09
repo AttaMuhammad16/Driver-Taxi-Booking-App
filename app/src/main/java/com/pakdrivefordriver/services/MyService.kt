@@ -1,5 +1,6 @@
 package com.pakdrivefordriver.services
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,17 +10,17 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
-import android.util.Log
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.pakdrive.Utils
 import com.pakdrivefordriver.MyConstants.LATLANG_UPDATE_DELAY
 import com.pakdrivefordriver.MyConstants.broadCastAction
 import com.pakdrivefordriver.R
@@ -38,6 +39,8 @@ class MyService : Service() {
     lateinit var driverRepo: DriverRepo
     private var lastUpdateTime = 0L
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private var wakeLock: PowerManager.WakeLock? = null
+
 
     @OptIn(DelicateCoroutinesApi::class)
     private val locationCallback = object : LocationCallback() {
@@ -59,12 +62,20 @@ class MyService : Service() {
         }
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate() {
         super.onCreate()
+
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         requestLocationUpdates()
         val filter = IntentFilter(broadCastAction)
         registerReceiver(stopReceiver, filter)
+
+        wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
+             newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LocationService::lock").apply {
+                 acquire(10*1000L)  // 10 seconds
+             }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -91,8 +102,6 @@ class MyService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-//        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
-//        unregisterReceiver(stopReceiver)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -113,15 +122,15 @@ class MyService : Service() {
         val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
 
         val stopServiceIntent = Intent(this, StopServiceReceiver::class.java)
-        val stopServicePendingIntent = PendingIntent.getBroadcast(this, 1, stopServiceIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val stopServicePendingIntent = PendingIntent.getBroadcast(this, 2, stopServiceIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         return NotificationCompat.Builder(this, "location update")
             .setContentTitle("Pak Drive location updates")
-            .setContentText("Service is running in the background").setSmallIcon(R.drawable.app_ic)
-            .addAction(R.drawable.baseline_clear_24, "Stop", stopServicePendingIntent) // Add the action here
+            .setContentText("If you turn off the location then you will become offline.").setSmallIcon(R.drawable.app_ic)
+            .addAction(R.drawable.baseline_clear_24, "Turn off", stopServicePendingIntent) // Add the action here
+            .setSmallIcon(R.drawable.outline_local_taxi_24)
             .setContentIntent(pendingIntent).build()
     }
-
 
 }
 

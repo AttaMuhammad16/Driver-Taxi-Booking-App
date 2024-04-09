@@ -1,4 +1,4 @@
-package com.pakdrive
+package com.pakdrivefordriver
 
 import android.Manifest
 import android.app.Activity
@@ -26,8 +26,8 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
+import com.pakdrive.MyResult
 import com.pakdrivefordriver.MyConstants.LOCATION_PERMISSION_REQUEST_CODE
-import com.pakdrivefordriver.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,13 +69,13 @@ object Utils {
     }
 
 
-    fun resultChecker(result:MyResult, context: Activity){
+    fun resultChecker(result: MyResult, context: Activity){
         when(result){
-            is MyResult.Success->{
+            is MyResult.Success ->{
                 myToast(context,result.success)
             }
 
-            is MyResult.Error->{
+            is MyResult.Error ->{
                 myToast(context,result.error)
             }
             else->{
@@ -176,7 +176,7 @@ object Utils {
 
 
 
-    fun showAlertDialog(context: Activity,dialogeInterface: DialogInterface,title:String){
+    fun showAlertDialog(context: Activity, dialogeInterface: DialogInterface, title:String){
         val builder = AlertDialog.Builder(context)
         builder.setTitle(title)
         builder.setPositiveButton("Yes") { _, _ ->
@@ -221,11 +221,7 @@ object Utils {
 
 
     fun rippleEffect(context: Context, view: View) {
-        val rippleDrawable = RippleDrawable(
-            ColorStateList.valueOf(context.resources.getColor(R.color.rippleColor)),
-            null,
-            null
-        )
+        val rippleDrawable = RippleDrawable(ColorStateList.valueOf(context.resources.getColor(R.color.rippleColor)), null, null)
         view.background = rippleDrawable
     }
 
@@ -234,6 +230,12 @@ object Utils {
         val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
         val currentDate = Date(currentTimeMillis)
         return dateFormat.format(currentDate)
+    }
+    fun shareAppLink(context: Context,str: String){
+        val intent = Intent(Intent.ACTION_SEND)
+        intent.type = "text/plain"
+        intent.putExtra(Intent.EXTRA_TEXT, str)
+        context.startActivity(Intent.createChooser(intent, "Share via"))
     }
 }
 

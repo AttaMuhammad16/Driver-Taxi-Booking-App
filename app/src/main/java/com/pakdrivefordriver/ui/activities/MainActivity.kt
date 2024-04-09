@@ -1,22 +1,25 @@
 package com.pakdrivefordriver.ui.activities
 
+import android.annotation.SuppressLint
 import android.app.Dialog
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
+import android.location.Address
 import android.location.Geocoder
 import android.location.LocationManager
-import androidx.appcompat.app.AppCompatActivity
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.view.LayoutInflater
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
@@ -32,29 +35,29 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.libraries.places.api.Places
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.mindinventory.midrawer.MIDrawerView
 import com.pakdrive.InternetChecker
 import com.pakdrive.PermissionHandler
-import com.pakdrive.Utils
-import com.pakdrive.Utils.dismissProgressDialog
-import com.pakdrive.Utils.myToast
-import com.pakdrive.Utils.rippleEffect
 import com.pakdrivefordriver.MyConstants.DRIVER
 import com.pakdrivefordriver.MyConstants.DRIVER_TOKEN_NODE
 import com.pakdrivefordriver.MyConstants.broadCastAction
 import com.pakdrivefordriver.R
+import com.pakdrivefordriver.Utils
+import com.pakdrivefordriver.Utils.dismissProgressDialog
+import com.pakdrivefordriver.Utils.myToast
+import com.pakdrivefordriver.Utils.shareAppLink
+import com.pakdrivefordriver.Utils.statusBarColor
 import com.pakdrivefordriver.databinding.ActivityMainBinding
 import com.pakdrivefordriver.services.MyService
 import com.pakdrivefordriver.ui.viewmodels.DriverViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 
 @AndroidEntryPoint
@@ -74,12 +77,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     lateinit var userLocationMarker: Marker
     val driverViewModel:DriverViewModel by viewModels()
 
+    lateinit var addressName:String
+    var totalRides=0
+    var totalCancelledRides=0
+    var totalCompletedRides=0
+    var totalEarning=0
+
+    @SuppressLint("SetTextI18n", "MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding=DataBindingUtil.setContentView(this,R.layout.activity_main)
         locationManager=getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        dialog=Utils.showProgressDialog(this,"Finding...")
-        Utils.statusBarColor(this,R.color.tool_color)
+        dialog = Utils.showProgressDialog(this, "Finding...")
+        statusBarColor(this,R.color.tool_color)
 
         val myFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
         myFragment.getMapAsync(this)
@@ -130,19 +140,81 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         binding.rideHistoryLinear.setOnClickListener {
             startActivity(Intent(this@MainActivity,DriverRideHistoryActivity::class.java))
         }
-    }
 
+        binding.shareLinear.setOnClickListener {
+            shareAppLink(this@MainActivity, "Pak Drive (Driver) From Quantum App Works \nhttps://play.google.com/store/apps/details?id=com.pakdrivefordriver")
+        }
+
+        lifecycleScope.launch {
+            val listOfHistory = driverViewModel.getDriverHistory()
+            totalRides = listOfHistory?.size ?: 0
+            totalCompletedRides = listOfHistory?.count { it.rideStatus } ?: 0
+            totalCancelledRides = totalRides - totalCompletedRides
+            totalEarning = listOfHistory?.sumBy { it.payment.toInt() } ?: 0
+        }
+
+        binding.ridesDetailLinear.setOnClickListener {
+            val dialog = MaterialAlertDialogBuilder(this@MainActivity)
+            val views = LayoutInflater.from(this@MainActivity).inflate(R.layout.rides_info_dialog,null,false)
+            dialog.setView(views)
+
+            val totalEarningTv=views.findViewById<TextView>(R.id.totalEarningTv)
+            val totalCompletedRidesTv=views.findViewById<TextView>(R.id.totalCompletedRidesTv)
+            val totalCancelledRidesTv=views.findViewById<TextView>(R.id.totalCancelledRidesTv)
+
+            totalEarningTv.text=totalEarning.toString()
+            totalCompletedRidesTv.text=totalCompletedRides.toString()
+            totalCancelledRidesTv.text=totalCancelledRides.toString()
+
+            dialog.show()
+        }
+
+
+        val locationResult = fusedLocationClient.lastLocation
+        locationResult.addOnCompleteListener(this) { task ->
+            if (task.result != null) {
+                val geocoder = Geocoder(this, Locale.getDefault())
+                val addresses = geocoder.getFromLocation(
+                    task.result.latitude,
+                    task.result.longitude,
+                    1
+                )
+                if (addresses?.isNotEmpty()==true){
+                    val address: Address = addresses[0]
+                    addressName = address.getAddressLine(0)
+                }else{
+                    Toast.makeText(this, "Address not found.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        binding.sheetShow.setOnClickListener {
+            val sheet=BottomSheetDialog(this@MainActivity)
+            sheet.setContentView(R.layout.bottom_sheet_dialog)
+            val location=sheet.findViewById<TextView>(R.id.location)
+            location?.text="Current Location: $addressName"
+            sheet.show()
+        }
+
+    }
 
     override fun onMapReady(googleMap: GoogleMap) {
 
         lifecycleScope.launch {
-            var internetChecker=async { InternetChecker().isInternetConnectedWithPackage(this@MainActivity) }
+            val internetChecker =
+                async { InternetChecker().isInternetConnectedWithPackage(this@MainActivity) }
             if (internetChecker.await()){
                 onGoogleMap=googleMap
-//                onGoogleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this@MainActivity,R.raw.map_style)) // setting map style.
+                onGoogleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(
+                        this@MainActivity,
+                        R.raw.map_style
+                    )
+                ) // setting map style.
                 googleMap.apply {
                     uiSettings.isCompassEnabled = false;
-                    uiSettings.isRotateGesturesEnabled = false;
+                    uiSettings.isRotateGesturesEnabled = true;
+                    uiSettings.isMyLocationButtonEnabled = true;
                 }
             }else{
                 myToast(this@MainActivity,"On your Internet connection.")
@@ -173,23 +245,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         sendBroadcast(intent)
 
         lifecycleScope.launch{
-            launch {
-                if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                    PermissionHandler.showEnableGpsDialog(this@MainActivity)
-                    dismissProgressDialog(dialog)
-                }else if (!InternetChecker().isInternetConnectedWithPackage(this@MainActivity)){
-                    val intent = Intent(Settings.ACTION_WIRELESS_SETTINGS)
-                    startActivity(intent)
-                    myToast(this@MainActivity, "on your internet connection.", Toast.LENGTH_LONG)
-                }else if (!Utils.isLocationPermissionGranted(this@MainActivity)){
-                    Utils.requestLocationPermission(this@MainActivity)
-                } else if (Utils.isLocationPermissionGranted(this@MainActivity) &&locationManager.isProviderEnabled(
-                    LocationManager.GPS_PROVIDER)&& InternetChecker().isInternetConnectedWithPackage(this@MainActivity)){
-                    Utils.generateFCMToken(DRIVER, DRIVER_TOKEN_NODE)
-                    PermissionHandler.askNotificationPermission(this@MainActivity, requestPermissionLauncher)
-                    if (::onGoogleMap.isInitialized&&::fusedLocationClient.isInitialized){
-                    }
-                }
+             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                 PermissionHandler.showEnableGpsDialog(this@MainActivity)
+                 dismissProgressDialog(dialog)
+             }else if (!InternetChecker().isInternetConnectedWithPackage(this@MainActivity)){
+                 val intent = Intent(Settings.ACTION_WIRELESS_SETTINGS)
+                 startActivity(intent)
+                 myToast(this@MainActivity, "on your internet connection.", Toast.LENGTH_LONG)
+             }else if (!Utils.isLocationPermissionGranted(this@MainActivity)){
+                 Utils.requestLocationPermission(this@MainActivity)
+             } else if (Utils.isLocationPermissionGranted(this@MainActivity) &&locationManager.isProviderEnabled(
+                 LocationManager.GPS_PROVIDER)&& InternetChecker().isInternetConnectedWithPackage(this@MainActivity)){
+                 Utils.generateFCMToken(DRIVER, DRIVER_TOKEN_NODE)
+                 PermissionHandler.askNotificationPermission(this@MainActivity, requestPermissionLauncher)
+                 if (::onGoogleMap.isInitialized&&::fusedLocationClient.isInitialized){
+                 }
             }
         }
     }
@@ -206,12 +276,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onPause() {
         super.onPause()
-        startService(Intent(this@MainActivity,MyService::class.java)) // start the service.
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        startService(Intent(this@MainActivity,MyService::class.java)) // start the service.
+        val intent = Intent(this, MyService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ContextCompat.startForegroundService(this, intent)
+        } else {
+            startService(intent)
+        }
     }
 
 }

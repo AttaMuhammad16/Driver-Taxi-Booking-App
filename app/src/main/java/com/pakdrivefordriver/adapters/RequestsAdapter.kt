@@ -12,10 +12,10 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.model.TravelMode
-import com.pakdrive.DialogInterface
+import com.pakdrivefordriver.DialogInterface
 import com.pakdrive.InternetChecker
 import com.pakdrive.MyResult
-import com.pakdrive.Utils
+import com.pakdrivefordriver.Utils
 import com.pakdrive.models.RequestModel
 import com.pakdrivefordriver.MyConstants.apiKey
 import com.pakdrivefordriver.R
@@ -56,7 +56,7 @@ class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val drive
             Utils.showAlertDialog(context,object: DialogInterface {
                 override fun clickedBol(bol: Boolean) {
                     if (bol){
-                        var dialog=Utils.showProgressDialog(context,"Cancelling...")
+                        var dialog= Utils.showProgressDialog(context,"Cancelling...")
                         CoroutineScope(Dispatchers.Main).launch{
 
                             try {
@@ -88,7 +88,7 @@ class RequestsAdapter(private val requestList: ArrayList<RequestModel>,val drive
                 Utils.showAlertDialog(context,object: DialogInterface {
                     override fun clickedBol(bol: Boolean) {
                         if (bol){
-                            var dialog=Utils.showProgressDialog(context,"Sending...")
+                            var dialog= Utils.showProgressDialog(context,"Sending...")
                             CoroutineScope(Dispatchers.Main).launch{
                                 val internet=async { InternetChecker().isInternetConnectedWithPackage(context) }
                                 if (internet.await()){

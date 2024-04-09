@@ -7,15 +7,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.pakdrive.InternetChecker
-import com.pakdrive.Utils
 import com.pakdrive.service.notification.NotificationManager.Companion.showNotification
-import com.pakdrivefordriver.MyConstants.COMMENT
 import com.pakdrivefordriver.MyConstants.CUSTOMERUID
-import com.pakdrivefordriver.MyConstants.DISTANCE
 import com.pakdrivefordriver.MyConstants.DRIVER
 import com.pakdrivefordriver.MyConstants.DRIVER_TOKEN_NODE
-import com.pakdrivefordriver.MyConstants.PRICERANGE
-import com.pakdrivefordriver.MyConstants.TIME
 import com.pakdrivefordriver.MyConstants.TITLE
 import com.pakdrivefordriver.MyConstants.approvedConst
 import com.pakdrivefordriver.ui.activities.LiveDriveActivity
@@ -25,7 +20,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 class MyFirebaseMessagingService:FirebaseMessagingService() {
     val auth: FirebaseAuth by lazy{

@@ -2,10 +2,8 @@ package com.pakdrivefordriver.data.driver
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.location.Geocoder
 import android.location.Location
 import android.net.Uri
 import android.os.Looper
@@ -33,22 +31,19 @@ import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
 import com.google.maps.model.TravelMode
 import com.pakdrive.MyResult
-import com.pakdrive.Utils
+import com.pakdrivefordriver.Utils
 import com.pakdrive.models.CustomerModel
 import com.pakdrive.models.RequestModel
-import com.pakdrivefordriver.MyConstants
 import com.pakdrivefordriver.MyConstants.ACCEPTNODE
 import com.pakdrivefordriver.MyConstants.AVAILABLE
 import com.pakdrivefordriver.MyConstants.BEARNING
 import com.pakdrivefordriver.MyConstants.CUSTOMER
 import com.pakdrivefordriver.MyConstants.CUSTOMERRIDEHISTORY
 import com.pakdrivefordriver.MyConstants.DRIVER
-import com.pakdrivefordriver.MyConstants.DRIVERAVAILABLENODE
 import com.pakdrivefordriver.MyConstants.DRIVERRIDEHISTORY
 import com.pakdrivefordriver.MyConstants.DRIVER_LANG_NODE
 import com.pakdrivefordriver.MyConstants.DRIVER_LAT_NODE
 import com.pakdrivefordriver.MyConstants.OFFER
-import com.pakdrivefordriver.MyConstants.RIDECOMPLETED
 import com.pakdrivefordriver.MyConstants.RIDEREQUESTS
 import com.pakdrivefordriver.MyConstants.VERIFICATION_NODE
 import com.pakdrivefordriver.MyConstants.apiKey
@@ -61,8 +56,6 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import java.io.IOException
-import java.util.Locale
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
