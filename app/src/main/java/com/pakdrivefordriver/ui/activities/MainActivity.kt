@@ -57,6 +57,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import java.sql.Array
 import java.util.Locale
 
 
@@ -154,6 +155,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         binding.ridesDetailLinear.setOnClickListener {
+
             val dialog = MaterialAlertDialogBuilder(this@MainActivity)
             val views = LayoutInflater.from(this@MainActivity).inflate(R.layout.rides_info_dialog,null,false)
             dialog.setView(views)
@@ -226,7 +228,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         override fun onLocationResult(locationResult: LocationResult) {
             super.onLocationResult(locationResult)
             lifecycleScope.launch {
-                var internetChecker=async { InternetChecker().isInternetConnectedWithPackage(this@MainActivity) }
+                val internetChecker=async { InternetChecker().isInternetConnectedWithPackage(this@MainActivity) }
                 if (::onGoogleMap.isInitialized&&internetChecker.await()&&locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
                     if (locationResult.lastLocation!=null){
                         driverViewModel.setUserLocationMarker(locationResult.lastLocation!!,onGoogleMap,this@MainActivity,R.drawable.car)
