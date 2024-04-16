@@ -199,7 +199,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             Log.i("Tag", "onCreate:${e.message} ")
         }
 
-
         binding.sheetShow.setOnClickListener {
             val sheet=BottomSheetDialog(this@MainActivity)
             sheet.setContentView(R.layout.bottom_sheet_dialog)
@@ -279,11 +278,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                          locationResult.addOnCompleteListener(this@MainActivity) { task ->
                              if (task.isSuccessful && task.result != null) {
                                  val geocoder = Geocoder(this@MainActivity, Locale.getDefault())
-                                 val addresses = geocoder.getFromLocation(
-                                     task.result.latitude,
-                                     task.result.longitude,
-                                     1
-                                 )
+                                 val addresses = geocoder.getFromLocation(task.result.latitude, task.result.longitude, 1)
                                  if (addresses!!.isNotEmpty()) {
                                      val address: Address = addresses[0]
                                      addressName = address.getAddressLine(0)
