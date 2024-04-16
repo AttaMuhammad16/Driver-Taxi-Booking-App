@@ -69,7 +69,7 @@ class MyService : Service() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         requestLocationUpdates()
         val filter = IntentFilter(broadCastAction)
-        registerReceiver(stopReceiver, filter)
+        registerReceiver(stopReceiver, filter,null,null)
 
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
              newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LocationService::lock").apply {

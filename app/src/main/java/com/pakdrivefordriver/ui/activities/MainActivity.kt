@@ -1,5 +1,6 @@
 package com.pakdrivefordriver.ui.activities
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
@@ -171,24 +172,33 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             dialog.show()
         }
 
-
-        val locationResult = fusedLocationClient.lastLocation
-        locationResult.addOnCompleteListener(this) { task ->
-            if (task.result != null) {
-                val geocoder = Geocoder(this, Locale.getDefault())
-                val addresses = geocoder.getFromLocation(
-                    task.result.latitude,
-                    task.result.longitude,
-                    1
-                )
-                if (addresses?.isNotEmpty()==true){
-                    val address: Address = addresses[0]
-                    addressName = address.getAddressLine(0)
-                }else{
-                    Toast.makeText(this, "Address not found.", Toast.LENGTH_SHORT).show()
+        try {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                val locationResult = fusedLocationClient.lastLocation
+                locationResult.addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful && task.result != null) {
+                        val geocoder = Geocoder(this, Locale.getDefault())
+                        val addresses = geocoder.getFromLocation(
+                            task.result.latitude,
+                            task.result.longitude,
+                            1
+                        )
+                        if (addresses!!.isNotEmpty()) {
+                            val address: Address = addresses[0]
+                            addressName = address.getAddressLine(0)
+                        } else {
+//                            Toast.makeText(this, "Address not found.", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        // Handle the case where location data is not available
+//                        Toast.makeText(this, "Unable to retrieve location data.", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
+        }catch (e:Exception){
+            Log.i("Tag", "onCreate:${e.message} ")
         }
+
 
         binding.sheetShow.setOnClickListener {
             val sheet=BottomSheetDialog(this@MainActivity)
@@ -251,8 +261,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                  PermissionHandler.showEnableGpsDialog(this@MainActivity)
                  dismissProgressDialog(dialog)
              }else if (!InternetChecker().isInternetConnectedWithPackage(this@MainActivity)){
-                 val intent = Intent(Settings.ACTION_WIRELESS_SETTINGS)
-                 startActivity(intent)
+                 val i = Intent(Settings.ACTION_WIRELESS_SETTINGS)
+                 startActivity(i)
                  myToast(this@MainActivity, "on your internet connection.", Toast.LENGTH_LONG)
              }else if (!Utils.isLocationPermissionGranted(this@MainActivity)){
                  Utils.requestLocationPermission(this@MainActivity)
@@ -261,6 +271,33 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                  Utils.generateFCMToken(DRIVER, DRIVER_TOKEN_NODE)
                  PermissionHandler.askNotificationPermission(this@MainActivity, requestPermissionLauncher)
                  if (::onGoogleMap.isInitialized&&::fusedLocationClient.isInitialized){
+                     driverViewModel.startLocationUpdate(fusedLocationClient,locationCallback,this@MainActivity,locationRequest)
+                 }
+                 try {
+                     if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                         val locationResult = fusedLocationClient.lastLocation
+                         locationResult.addOnCompleteListener(this@MainActivity) { task ->
+                             if (task.isSuccessful && task.result != null) {
+                                 val geocoder = Geocoder(this@MainActivity, Locale.getDefault())
+                                 val addresses = geocoder.getFromLocation(
+                                     task.result.latitude,
+                                     task.result.longitude,
+                                     1
+                                 )
+                                 if (addresses!!.isNotEmpty()) {
+                                     val address: Address = addresses[0]
+                                     addressName = address.getAddressLine(0)
+                                 } else {
+//                            Toast.makeText(this, "Address not found.", Toast.LENGTH_SHORT).show()
+                                 }
+                             } else {
+                                 // Handle the case where location data is not available
+//                        Toast.makeText(this, "Unable to retrieve location data.", Toast.LENGTH_SHORT).show()
+                             }
+                         }
+                     }
+                 }catch (e:Exception){
+                     Log.i("Tag", "onCreate:${e.message} ")
                  }
             }
         }

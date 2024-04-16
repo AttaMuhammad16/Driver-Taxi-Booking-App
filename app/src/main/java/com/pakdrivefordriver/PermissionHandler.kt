@@ -40,6 +40,7 @@ class PermissionHandler {
                     val settingsIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                     context.startActivity(settingsIntent)
                     which.dismiss()
+
                 }
                 .setNegativeButton("Cancel") { _, _ ->
                     Toast.makeText(context, "it is necessary for app functionality.", Toast.LENGTH_SHORT).show()
