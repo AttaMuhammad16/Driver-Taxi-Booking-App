@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.model.TravelMode
 import com.pakdrivefordriver.DialogInterface
-import com.pakdrive.InternetChecker
+import com.pakdrivefordriver.InternetChecker
 import com.pakdrive.MyResult
 import com.pakdrivefordriver.Utils
 import com.pakdrive.models.RequestModel

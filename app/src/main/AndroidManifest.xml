@@ -94,7 +94,7 @@
 
         <receiver
             android:name=".services.broadcastreciver.StopServiceReceiver"
-            android:exported="true">
+            android:exported="false">
             <intent-filter>
                 <action android:name="com.pakdrivefordriver.ACTION_STOP_SERVICE" />
             </intent-filter>
@@ -117,6 +117,7 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="Pak Driver Notification Id" />
+
     </application>
 
 </manifest>

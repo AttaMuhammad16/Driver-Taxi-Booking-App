@@ -42,11 +42,11 @@ import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.maps.model.TravelMode
-import com.pakdrive.InternetChecker
+import com.pakdrivefordriver.InternetChecker
 import com.pakdrive.MapUtils.clearMapObjects
 import com.pakdrive.MapUtils.drawRoute
 import com.pakdrive.MapUtils.removeMarker
-import com.pakdrive.PermissionHandler
+import com.pakdrivefordriver.PermissionHandler
 import com.pakdrivefordriver.Utils
 import com.pakdrivefordriver.Utils.dismissProgressDialog
 import com.pakdrivefordriver.Utils.getCurrentFormattedDate
@@ -441,7 +441,7 @@ class LiveDriveActivity : AppCompatActivity(), OnMapReadyCallback, GoogleApiClie
                 }else if (!isLocationPermissionGranted(this@LiveDriveActivity)){
                     requestLocationPermission(this@LiveDriveActivity)
                 } else if (isLocationPermissionGranted(this@LiveDriveActivity)&&locationManager.isProviderEnabled(
-                    LocationManager.GPS_PROVIDER)&&InternetChecker().isInternetConnectedWithPackage(this@LiveDriveActivity)){
+                    LocationManager.GPS_PROVIDER)&& InternetChecker().isInternetConnectedWithPackage(this@LiveDriveActivity)){
                     PermissionHandler.askNotificationPermission(this@LiveDriveActivity, requestPermissionLauncher)
                 }
             }

@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -62,20 +63,27 @@ class MyService : Service() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun onCreate() {
         super.onCreate()
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         requestLocationUpdates()
+
         val filter = IntentFilter(broadCastAction)
-        registerReceiver(stopReceiver, filter,null,null)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(stopReceiver, filter, RECEIVER_NOT_EXPORTED)
+        }else{
+            registerReceiver(stopReceiver, filter)
+        }
 
         wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager).run {
-             newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LocationService::lock").apply {
-                 acquire(10*1000L)  // 10 seconds
+             newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyService::lock").apply {
+                 acquire()
              }
         }
+
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

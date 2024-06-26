@@ -8,7 +8,7 @@ import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth
-import com.pakdrive.InternetChecker
+import com.pakdrivefordriver.InternetChecker
 import com.pakdrive.MyResult
 import com.pakdrivefordriver.Utils
 import com.pakdrivefordriver.R

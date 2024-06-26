@@ -6,7 +6,6 @@ import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.pakdrive.InternetChecker
 import com.pakdrive.service.notification.NotificationManager.Companion.showNotification
 import com.pakdrivefordriver.MyConstants.CUSTOMERUID
 import com.pakdrivefordriver.MyConstants.DRIVER

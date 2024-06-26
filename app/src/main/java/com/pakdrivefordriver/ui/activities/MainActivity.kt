@@ -20,11 +20,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
+import com.airbnb.lottie.model.Marker
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -33,15 +33,13 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.Marker
 import com.google.android.libraries.places.api.Places
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.mindinventory.midrawer.MIDrawerView
-import com.pakdrive.InternetChecker
-import com.pakdrive.PermissionHandler
+import com.pakdrivefordriver.InternetChecker
+import com.pakdrivefordriver.PermissionHandler
 import com.pakdrivefordriver.MyConstants.DRIVER
 import com.pakdrivefordriver.MyConstants.DRIVER_TOKEN_NODE
 import com.pakdrivefordriver.MyConstants.broadCastAction
@@ -55,10 +53,8 @@ import com.pakdrivefordriver.databinding.ActivityMainBinding
 import com.pakdrivefordriver.services.MyService
 import com.pakdrivefordriver.ui.viewmodels.DriverViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.sql.Array
 import java.util.Locale
 
 
@@ -206,7 +202,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             location?.text="Current Location: $addressName"
             sheet.show()
         }
-
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -242,12 +237,13 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                     if (locationResult.lastLocation!=null){
                         driverViewModel.setUserLocationMarker(locationResult.lastLocation!!,onGoogleMap,this@MainActivity,R.drawable.car)
                         dismissProgressDialog(dialog)
-                        driverViewModel.updateDriverLocationOnDataBase(locationResult?.lastLocation)
+                        driverViewModel.updateDriverLocationOnDataBase(locationResult.lastLocation)
                     }
                 }
             }
         }
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -265,8 +261,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                  myToast(this@MainActivity, "on your internet connection.", Toast.LENGTH_LONG)
              }else if (!Utils.isLocationPermissionGranted(this@MainActivity)){
                  Utils.requestLocationPermission(this@MainActivity)
-             } else if (Utils.isLocationPermissionGranted(this@MainActivity) &&locationManager.isProviderEnabled(
-                 LocationManager.GPS_PROVIDER)&& InternetChecker().isInternetConnectedWithPackage(this@MainActivity)){
+             } else if (Utils.isLocationPermissionGranted(this@MainActivity) &&locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)&& InternetChecker().isInternetConnectedWithPackage(this@MainActivity)){
                  Utils.generateFCMToken(DRIVER, DRIVER_TOKEN_NODE)
                  PermissionHandler.askNotificationPermission(this@MainActivity, requestPermissionLauncher)
                  if (::onGoogleMap.isInitialized&&::fusedLocationClient.isInitialized){

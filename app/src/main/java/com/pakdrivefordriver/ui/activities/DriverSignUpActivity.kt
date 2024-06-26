@@ -11,7 +11,7 @@ import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.pakdrive.InternetChecker
+import com.pakdrivefordriver.InternetChecker
 import com.pakdrive.MyResult
 import com.pakdrivefordriver.Utils
 import com.pakdrivefordriver.Utils.convertUriToBitmap
