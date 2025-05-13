@@ -59,4 +59,6 @@ interface DriverRepo {
     suspend fun getDriverHistory():ArrayList<RideHistoryModel>?
 
 
+    suspend fun <T : Any> uploadAnyModel(path: String, model: T): Result<String>
+
 }

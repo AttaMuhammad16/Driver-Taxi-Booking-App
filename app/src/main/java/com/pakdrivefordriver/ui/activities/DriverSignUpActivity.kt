@@ -11,8 +11,10 @@ import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
 import com.pakdrivefordriver.InternetChecker
 import com.pakdrive.MyResult
+import com.pakdrivefordriver.MyConstants.DRIVER_VERIFICATIONS
 import com.pakdrivefordriver.Utils
 import com.pakdrivefordriver.Utils.convertUriToBitmap
 import com.pakdrivefordriver.Utils.dismissProgressDialog
@@ -30,25 +32,28 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class DriverSignUpActivity : AppCompatActivity() {
     lateinit var binding:ActivityDriverSignUpBinding
-    private val PROFILE_IMAGE_REQUEST_CODE=0
-    private val FRONT_ID_CARD_REQUEST_CODE=1
-    private val BACK_ID_CARD_REQUEST_CODE=2
-    private val DRIVING_LICENSE_REQUEST_CODE=3
+//    private val PROFILE_IMAGE_REQUEST_CODE=0
+//    private val FRONT_ID_CARD_REQUEST_CODE=1
+//    private val BACK_ID_CARD_REQUEST_CODE=2
+//    private val DRIVING_LICENSE_REQUEST_CODE=3
 
     private lateinit var frontIdBitmap: Bitmap
     private lateinit var backIdBitmap: Bitmap
     private lateinit var drivingLicencesBitmap: Bitmap
     private lateinit var profileImageBitmap: Bitmap
-    private var bitmapList:ArrayList<Bitmap> = ArrayList()
+//    private var bitmapList:ArrayList<Bitmap> = ArrayList()
     val authViewModel: AuthViewModel by viewModels()
     val driverViewModel:DriverViewModel by viewModels()
-    val listOfUrls:ArrayList<String> = arrayListOf()
-    var profileDownloadUrl=""
+    @Inject
+    lateinit var auth:FirebaseAuth
+//    val listOfUrls:ArrayList<String> = arrayListOf()
+//    var profileDownloadUrl=""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,18 +65,18 @@ class DriverSignUpActivity : AppCompatActivity() {
             finish()
         }
 
-        binding.frontIdCardCard.setOnClickListener{
-            pickImage(FRONT_ID_CARD_REQUEST_CODE,this)
-        }
-        binding.idCardBackCard.setOnClickListener {
-            pickImage(BACK_ID_CARD_REQUEST_CODE,this)
-        }
-        binding.drivingLicenseCard.setOnClickListener {
-            pickImage(DRIVING_LICENSE_REQUEST_CODE,this)
-        }
-        binding.selectImg.setOnClickListener {
-            pickImage(PROFILE_IMAGE_REQUEST_CODE,this)
-        }
+//        binding.frontIdCardCard.setOnClickListener{
+//            pickImage(FRONT_ID_CARD_REQUEST_CODE,this)
+//        }
+//        binding.idCardBackCard.setOnClickListener {
+//            pickImage(BACK_ID_CARD_REQUEST_CODE,this)
+//        }
+//        binding.drivingLicenseCard.setOnClickListener {
+//            pickImage(DRIVING_LICENSE_REQUEST_CODE,this)
+//        }
+//        binding.selectImg.setOnClickListener {
+//            pickImage(PROFILE_IMAGE_REQUEST_CODE,this)
+//        }
 
         binding.signUpBtn.setOnClickListener {
 
@@ -83,11 +88,12 @@ class DriverSignUpActivity : AppCompatActivity() {
             val address=binding.addressEdt.text.toString().trim()
             val carDetails=binding.carDetails.text.toString().trim()
 
-            if(!::profileImageBitmap.isInitialized){
-                myToast(this,"Select profile image", Toast.LENGTH_LONG)
-                dismissProgressDialog(dialog)
-
-            }else if (userName.isEmpty()){
+//            if(!::profileImageBitmap.isInitialized){
+//                myToast(this,"Select profile image", Toast.LENGTH_LONG)
+//                dismissProgressDialog(dialog)
+//
+//            }
+            if (userName.isEmpty()){
                 binding.nameEdt.error = "Enter Name"
                 myToast(this,"Enter Name")
                 dismissProgressDialog(dialog)
@@ -132,23 +138,25 @@ class DriverSignUpActivity : AppCompatActivity() {
                 myToast(this,"Password length must be at least 6.")
                 dismissProgressDialog(dialog)
 
-            } else if (bitmapList.isEmpty()){
-                myToast(this@DriverSignUpActivity,"Select id card and driving license.")
-                dismissProgressDialog(dialog)
+            }
+//            else if (bitmapList.isEmpty()){
+//                myToast(this@DriverSignUpActivity,"Select id card and driving license.")
+//                dismissProgressDialog(dialog)
+//
+//            }else if (!::frontIdBitmap.isInitialized){
+//                myToast(this@DriverSignUpActivity,"Select Front id card.")
+//                dismissProgressDialog(dialog)
+//
+//            }else if (!::backIdBitmap.isInitialized){
+//                myToast(this@DriverSignUpActivity,"Select Back Front id card.")
+//                dismissProgressDialog(dialog)
+//
+//            }else if (!::drivingLicencesBitmap.isInitialized){
+//                myToast(this@DriverSignUpActivity,"Select Driving license.")
+//                dismissProgressDialog(dialog)
+//            }
 
-            }else if (!::frontIdBitmap.isInitialized){
-                myToast(this@DriverSignUpActivity,"Select Front id card.")
-                dismissProgressDialog(dialog)
-
-            }else if (!::backIdBitmap.isInitialized){
-                myToast(this@DriverSignUpActivity,"Select Back Front id card.")
-                dismissProgressDialog(dialog)
-
-            }else if (!::drivingLicencesBitmap.isInitialized){
-                myToast(this@DriverSignUpActivity,"Select Driving license.")
-                dismissProgressDialog(dialog)
-
-            }else if(carDetails.isEmpty()){
+            else if(carDetails.isEmpty()){
                 binding.carDetails.error = "Enter your vehicle details like (Riksha,097352)"
                 myToast(this@DriverSignUpActivity,"Enter your vehicle details like (name=Riksha,number=097352)", Toast.LENGTH_LONG)
                 dismissProgressDialog(dialog)
@@ -166,42 +174,51 @@ class DriverSignUpActivity : AppCompatActivity() {
                             }else if (authResult is MyResult.Success) run {
                                 lifecycleScope.launch {
 
-                                    bitmapList.forEach {
-                                        var job = async {
-                                            var result =   driverViewModel.uploadImageToStorage(it)
-                                            when(result){
-                                                is MyResult.Success -> {
-                                                    listOfUrls.add(result.success)
-                                                }
-                                                else -> {
-                                                    resultChecker(result,this@DriverSignUpActivity)
-                                                }
-                                            }
-                                        }
-                                        job.await()
-                                    }
+//                                    bitmapList.forEach {
+//                                        var job = async {
+//                                            var result =   driverViewModel.uploadImageToStorage(it)
+//                                            when(result){
+//                                                is MyResult.Success -> {
+//                                                    listOfUrls.add(result.success)
+//                                                }
+//                                                else -> {
+//                                                    resultChecker(result,this@DriverSignUpActivity)
+//                                                }
+//                                            }
+//                                        }
+//                                        job.await()
+//                                    }
 
-                                    val job=async {
-                                        var result=driverViewModel.uploadImageToStorage(profileImageBitmap)
-                                        when(result){
-                                            is MyResult.Success->{
-                                                profileDownloadUrl=result.success
-                                            }else->{
-                                            resultChecker(result,this@DriverSignUpActivity)
-                                        }
-                                        }
-                                    }
+//                                    val job=async {
+//                                        var result=driverViewModel.uploadImageToStorage(profileImageBitmap)
+//                                        when(result){
+//                                            is MyResult.Success->{
+//                                                profileDownloadUrl=result.success
+//                                            }else->{
+//                                            resultChecker(result,this@DriverSignUpActivity)
+//                                        }
+//                                        }
+//                                    }
 
-                                    job.await()
-                                    val model=DriverModel(null,listOfUrls,profileDownloadUrl,userName, email, password, phoneNumber, address,0.0,0.0,"",carDetails,0f,0, availabe = false, verificationProcess = false, far = "",timeTravelToCustomer="",distanceTravelToCustomer="", bearing = 0.0f, lock = false)
+//                                    job.await()
+                                    val model=DriverModel(null, arrayListOf(),"",userName, email, password, phoneNumber, address,0.0,0.0,"",carDetails,0f,0, availabe = false, verificationProcess = true, far = "",timeTravelToCustomer="",distanceTravelToCustomer="", bearing = 0.0f, lock = false)
                                     val uploadResult=driverViewModel.uploadUserOnDatabase(model)
                                     if (uploadResult is MyResult.Success){
+//
+//                                        val map= hashMapOf<String,Any>()
+//                                        val userKey=auth.currentUser!!.uid
+//                                        map[userKey] =userKey
+//                                        driverViewModel.uploadAnyModel(DRIVER_VERIFICATIONS,map)
+
                                         resultChecker(uploadResult,this@DriverSignUpActivity)
                                         finish()
                                         dismissProgressDialog(dialog)
+
                                     }else if (uploadResult is MyResult.Error){
                                         resultChecker(uploadResult,this@DriverSignUpActivity)
                                     }
+
+
                                 }
 
                             } else{
@@ -219,54 +236,55 @@ class DriverSignUpActivity : AppCompatActivity() {
 
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
 
-        if (resultCode== Activity.RESULT_OK){
-            var uri=data?.data
-            var job= CoroutineScope(Dispatchers.IO).async {
-                convertUriToBitmap(uri,this@DriverSignUpActivity)
-            }
-
-            when (requestCode) {
-
-                FRONT_ID_CARD_REQUEST_CODE -> {
-                    binding.frontIdCardTv.visibility= View.GONE
-                    lifecycleScope.launch {
-                        frontIdBitmap=job.await()!!
-                        bitmapList.add(frontIdBitmap)
-                        Glide.with(this@DriverSignUpActivity).load(frontIdBitmap).into(binding.frontImg)
-                    }
-                }
-
-                BACK_ID_CARD_REQUEST_CODE -> {
-                    binding.idCardBackTv.visibility= View.GONE
-                    lifecycleScope.launch {
-                        backIdBitmap=job.await()!!
-                        bitmapList.add(backIdBitmap)
-                        Glide.with(this@DriverSignUpActivity).load(backIdBitmap).into(binding.backImg)
-                    }
-                }
-
-                DRIVING_LICENSE_REQUEST_CODE -> {
-                    binding.drivingLicenseTv.visibility= View.GONE
-                    lifecycleScope.launch {
-                        drivingLicencesBitmap=job.await()!!
-                        bitmapList.add(drivingLicencesBitmap)
-                        Glide.with(this@DriverSignUpActivity).load(drivingLicencesBitmap).into(binding.drivingLicenceImg)
-                    }
-                }
-
-                PROFILE_IMAGE_REQUEST_CODE -> {
-                    lifecycleScope.launch {
-                        profileImageBitmap=job.await()!!
-                        Glide.with(this@DriverSignUpActivity).load(profileImageBitmap).into(binding.circleImageView)
-                    }
-                }
-
-            }
-        }
-    }
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//
+//        if (resultCode== Activity.RESULT_OK){
+//            var uri=data?.data
+//            var job= CoroutineScope(Dispatchers.IO).async {
+//                convertUriToBitmap(uri,this@DriverSignUpActivity)
+//            }
+//
+//            when (requestCode) {
+//
+//                FRONT_ID_CARD_REQUEST_CODE -> {
+//                    binding.frontIdCardTv.visibility= View.GONE
+//                    lifecycleScope.launch {
+//                        frontIdBitmap=job.await()!!
+//                        bitmapList.add(frontIdBitmap)
+//                        Glide.with(this@DriverSignUpActivity).load(frontIdBitmap).into(binding.frontImg)
+//                    }
+//                }
+//
+//                BACK_ID_CARD_REQUEST_CODE -> {
+//                    binding.idCardBackTv.visibility= View.GONE
+//                    lifecycleScope.launch {
+//                        backIdBitmap=job.await()!!
+//                        bitmapList.add(backIdBitmap)
+//                        Glide.with(this@DriverSignUpActivity).load(backIdBitmap).into(binding.backImg)
+//                    }
+//                }
+//
+//                DRIVING_LICENSE_REQUEST_CODE -> {
+//                    binding.drivingLicenseTv.visibility= View.GONE
+//                    lifecycleScope.launch {
+//                        drivingLicencesBitmap=job.await()!!
+//                        bitmapList.add(drivingLicencesBitmap)
+//                        Glide.with(this@DriverSignUpActivity).load(drivingLicencesBitmap).into(binding.drivingLicenceImg)
+//                    }
+//                }
+//
+//                PROFILE_IMAGE_REQUEST_CODE -> {
+//                    lifecycleScope.launch {
+//                        profileImageBitmap=job.await()!!
+//                        Glide.with(this@DriverSignUpActivity).load(profileImageBitmap).into(binding.circleImageView)
+//                    }
+//                }
+//
+//            }
+//        }
+//    }
 
 
 }

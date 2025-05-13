@@ -368,4 +368,14 @@ class DriverRepoImpl @Inject constructor(val auth:FirebaseAuth,val databaseRefer
     }
 
 
+    override suspend fun <T : Any> uploadAnyModel(path: String, model: T): Result<String> {
+        return try {
+            databaseReference.child(path).setValue(model).await()
+            Result.success("uploaded successfully")
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
 }

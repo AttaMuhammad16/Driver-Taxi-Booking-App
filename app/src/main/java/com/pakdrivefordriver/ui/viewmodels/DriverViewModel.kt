@@ -35,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -249,5 +250,13 @@ class DriverViewModel @Inject constructor(private val driverRepo: DriverRepo):Vi
             driverRepo.getDriverHistory()
         }
     }
+
+
+    suspend fun <T : Any> uploadAnyModel(path: String, model: T): Result<String>{
+        return withContext(Dispatchers.IO){
+            driverRepo.uploadAnyModel(path,model)
+        }
+    }
+
 
 }

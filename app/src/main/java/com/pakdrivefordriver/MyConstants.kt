@@ -39,4 +39,7 @@ object MyConstants {
     const val CUSTOMERRIDEHISTORY="CustomerRideHistory"
     const val DRIVERRIDEHISTORY="DriverRideHistory"
 
+    const val DRIVER_VERIFICATIONS="DriverVerifications"
+
+
 }
